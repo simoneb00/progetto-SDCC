@@ -1,7 +1,8 @@
 """
 This file contains the containers' basic operations.
 Every container is relative to a specific country, and gets data from sensors located in that country.
-It has the following responsibilities:
+It must perform the following operations:
+* Receive messages sent on a socket
 * Collect significant data from raw measurement (json file)
 * Convert data to common units of measure (e.g. temperature -> Celsius)
 * Send data (relative to every city) to the cloud
@@ -9,6 +10,10 @@ It has the following responsibilities:
 """
 
 import datetime
+import sys
+
+from flask import Flask, request, json
+import os
 
 
 class Packet:
@@ -22,6 +27,16 @@ class Packet:
         self.pressure = pressure
         self.humidity = humidity
         self.date_time = date_time
+
+
+app = Flask(__name__)
+
+
+def decode_json(data):
+    print("Decoding data...", flush=True)
+    print(data["name"], flush=True)
+    print(data["main"]["temp"], flush=True)
+
 
 
 def pack_city_data(city):
@@ -62,4 +77,27 @@ def pack_data(cities):
     return data
 
 
+
 # def send_data: todo
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'file' not in request.files:
+        return "No files in the request", 400
+
+    file = request.files['file']
+
+    if file:
+        file_contents = file.read()
+        deserialized_data = json.loads(file_contents)
+        decode_json(deserialized_data)
+        return "Data correctly received", 200
+
+@app.route('/')
+def hello_geek():
+    return '<h1>Hello from Flask & Docker</h2>'
+
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)

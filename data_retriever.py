@@ -80,7 +80,14 @@ def retrieve_weather_data(lat, lon, api_key):
         return None
 
 
-def entry_point():
+def retrieve_countries():
+    cities, codes = parse_csv_file("cities.csv")
+    codes_unique = list(set(codes))
+    return codes_unique
+
+
+# This returns a tuple [city, country, lat, lon, data]
+def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
     cities = retrieve_cities(api_key)
 
