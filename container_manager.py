@@ -5,8 +5,6 @@ Then, every container must receive data relative to cities in that country.
 The countries are retrieved from the file cities.csv.
 """
 import json
-import pickle
-import socket
 import docker
 import os
 
@@ -18,7 +16,7 @@ import data_retriever
 def build_image(image_name):
     client = docker.from_env()
     try:
-        with open(os.path.join("/home/simoneb/PycharmProjects/sensor_network", 'Dockerfile_container'), 'rb') as f:
+        with open(os.path.join("/", 'Dockerfile_container'), 'rb') as f:
             image = client.images.build(fileobj=f, tag=image_name, path="/Dockerfile_container")
 
         print(f"Image {image_name} successfully created")
@@ -58,7 +56,15 @@ def create_containers():
 
 
 def send_packet_to_container(packet):
-    url = "http://localhost:8080/upload"
+
+    dest_country = packet.country.lower()[1:]
+
+    with open("routing.json", 'r') as file:
+        data = json.load(file)
+
+    port_number = data[f"{dest_country}"]
+
+    url = f"http://localhost:{port_number}/{dest_country}"
 
     with open("data.json", 'w') as file:
         json.dump(packet.data, file)

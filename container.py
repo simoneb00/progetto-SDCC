@@ -10,7 +10,6 @@ It must perform the following operations:
 """
 
 import datetime
-import sys
 
 from flask import Flask, request, json
 import os
@@ -30,6 +29,8 @@ class Packet:
 
 
 app = Flask(__name__)
+container_name = os.environ.get("CONTAINER_NAME")
+container_country = container_name[len(container_name) - 2:]
 
 
 def decode_json(data):
@@ -38,12 +39,9 @@ def decode_json(data):
     print(data["main"]["temp"], flush=True)
 
 
-
-def pack_city_data(city):
-    name = city.name
-    country = city.code
-    data = city.data
-
+def pack_city_data(data):
+    name = data["name"]
+    country = container_country
     kelvin_temp = data["main"]["temp"]
     kelvin_feels_like = data["main"]["feels_like"]
     kelvin_min = data["main"]["temp_min"]
@@ -77,11 +75,10 @@ def pack_data(cities):
     return data
 
 
-
 # def send_data: todo
 
 
-@app.route('/upload', methods=['POST'])
+@app.route(f'/{container_country}', methods=['POST'])
 def upload():
     if 'file' not in request.files:
         return "No files in the request", 400
@@ -94,10 +91,18 @@ def upload():
         decode_json(deserialized_data)
         return "Data correctly received", 200
 
+
 @app.route('/')
-def hello_geek():
-    return '<h1>Hello from Flask & Docker</h2>'
+def hello():
+    return f'<h1>Hello from the container for country {container_country} </h2>'
+
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    print(f"{container_name}, representing the country {container_country}")
+
+    with open("routing.json", 'r') as file:
+        data = json.load(file)
+
+    port_number = data[f"{container_country}"]
+
+    app.run(host='0.0.0.0', port=port_number)

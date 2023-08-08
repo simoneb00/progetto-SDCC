@@ -1,11 +1,8 @@
 """ Entry-point """
-import threading
 
-import container
 import data_retriever
 import container_manager
 import subprocess
-import time
 
 # sending packets to container (TODO remove)
 

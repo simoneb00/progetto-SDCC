@@ -7,9 +7,9 @@ import requests
 
 
 class City:
-    def __init__(self, name, code, lat, lon, data=None):
+    def __init__(self, name, country, lat, lon, data=None):
         self.name = name
-        self.code = code
+        self.country = country
         self.lat = lat
         self.lon = lon
         self.data = data
