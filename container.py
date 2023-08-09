@@ -4,7 +4,7 @@ Every container is relative to a specific country, and gets data from sensors lo
 It must perform the following operations:
 * Receive messages sent on a socket
 * Collect significant data from raw measurement (json file)
-* Convert data to common units of measure (e.g. temperature -> Celsius)
+* Convert data to standard units of measure (e.g. temperature -> Celsius)
 * Send data (relative to every city) to the cloud
 (This file should be loaded into every container)
 """
@@ -31,12 +31,6 @@ class Packet:
 app = Flask(__name__)
 container_name = os.environ.get("CONTAINER_NAME")
 container_country = container_name[len(container_name) - 2:]
-
-
-def decode_json(data):
-    print("Decoding data...", flush=True)
-    print(data["name"], flush=True)
-    print(data["main"]["temp"], flush=True)
 
 
 def pack_city_data(data):
@@ -67,16 +61,9 @@ def pack_city_data(data):
                   date_time)
 
 
-def pack_data(cities):
-    data = []
-    for city in cities:
-        data.append(pack_city_data(city))
-
-    return data
-
-
-# def send_data: todo
-
+# todo: packets should be sent to cloud
+def send_packet(packet):
+    print(f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.pressure}, {packet.humidity}, {packet.date_time}]")
 
 @app.route(f'/{container_country}', methods=['POST'])
 def upload():
@@ -88,7 +75,8 @@ def upload():
     if file:
         file_contents = file.read()
         deserialized_data = json.loads(file_contents)
-        decode_json(deserialized_data)
+        packet = pack_city_data(deserialized_data)
+        send_packet(packet)
         return "Data correctly received", 200
 
 
