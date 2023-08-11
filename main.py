@@ -25,6 +25,10 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
 
+    container_manager.start()
+
+    """
     cities = data_retriever.retrieve()
     for city in cities:
         container_manager.send_packet_to_container(city)
+    """

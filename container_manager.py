@@ -5,6 +5,8 @@ Then, every container must receive data relative to cities in that country.
 The countries are retrieved from the file cities.csv.
 """
 import json
+import time
+
 import docker
 import os
 
@@ -73,3 +75,22 @@ def send_packet_to_container(packet):
         files = {'file': file}
         response = requests.post(url, files=files)
         print(response)
+
+
+# The manager retrieves data every 60 seconds, and sends packets to containers
+def start():
+
+    keep_running = True
+    while keep_running:
+
+        print("Container manager: starting to retrieve data...")
+        cities = data_retriever.retrieve()
+        print("Container manager: data retrieved, sending packets to containers")
+        for city in cities:
+            send_packet_to_container(city)
+        print("Container manager: packets successfully delivered, now sleeping for 60 seconds")
+        user_input = input("Do you want to continue? (y/n)")
+        if user_input.lower() == "n":
+            keep_running = False
+        else:
+            time.sleep(60)
