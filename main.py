@@ -12,8 +12,6 @@ if __name__ == "__main__":
 
     # container_manager.create_containers()
 
-    print("containers created")
-
     # cities = data_retriever.entry_point()  # tuples (name, country, lat, lon, data)
     # packets = container.pack_data(cities)
 

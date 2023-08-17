@@ -1,6 +1,7 @@
 FROM python:3.8
 ADD container.py .
 ADD routing.json .
+ADD cloud_interface.py .
 RUN pip install flask
 RUN pip install docker
 CMD ["python3", "container.py"]

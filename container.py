@@ -19,6 +19,8 @@ from flask import Flask, request, json
 import os
 from multiprocessing import Process
 
+import cloud_interface
+
 
 class Packet:
     def __init__(self, name, country, temp, feels_like, temp_min, temp_max, pressure, humidity, date_time):
@@ -66,9 +68,9 @@ def pack_city_data(data):
                   date_time)
 
 
-# todo: packets should be sent to cloud
 def send_packet(packet):
     print(f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.pressure}, {packet.humidity}, {packet.date_time}]")
+    cloud_interface.send_data_to_cloud(packet)
 
 
 @app.route(f'/{container_country}/stop')
