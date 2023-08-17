@@ -10,9 +10,14 @@ It must perform the following operations:
 """
 
 import datetime
+import signal
+import subprocess
+import threading
+import docker
 
 from flask import Flask, request, json
 import os
+from multiprocessing import Process
 
 
 class Packet:
@@ -65,6 +70,19 @@ def pack_city_data(data):
 def send_packet(packet):
     print(f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.pressure}, {packet.humidity}, {packet.date_time}]")
 
+
+@app.route(f'/{container_country}/stop')
+def shutdown():
+    client = docker.from_env()
+    try:
+        container = client.containers.get(container_name)
+        container.stop()
+    except docker.errors.NotFound:
+        print(f"Container {container_name} non trovato.")
+    except docker.errors.APIError as e:
+        print(f"Errore nell'interruzione del container {container_name}: {e}")
+    return "shutting down", 200
+
 @app.route(f'/{container_country}', methods=['POST'])
 def upload():
     if 'file' not in request.files:
@@ -92,5 +110,5 @@ if __name__ == "__main__":
         data = json.load(file)
 
     port_number = data[f"{container_country}"]
-
     app.run(host='0.0.0.0', port=port_number)
+

@@ -27,5 +27,6 @@ for i in "${!countries[@]}"; do
         docker logs "container_${country}"  # print container console output
 
         echo "The container container_${country} has been created and it is running"
+
     fi
 done

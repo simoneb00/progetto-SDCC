@@ -2,4 +2,5 @@ FROM python:3.8
 ADD container.py .
 ADD routing.json .
 RUN pip install flask
+RUN pip install docker
 CMD ["python3", "container.py"]

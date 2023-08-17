@@ -57,6 +57,21 @@ def create_containers():
         create_and_run_container(image_name, container_name)
 
 
+def send_stop_messages():
+    countries = data_retriever.retrieve_countries()
+
+    with open("routing.json", 'r') as file:
+        data = json.load(file)
+
+    for country in countries:
+        dest_country = country.lower()[1:]
+        port_number = data[f"{dest_country}"]
+        url = f"http://localhost:{port_number}/{dest_country}/stop"
+        response = requests.get(url)
+        if response.status_code == 200:
+            print("Container manager: stop message successfully delivered")
+
+
 def send_packet_to_container(packet):
 
     dest_country = packet.country.lower()[1:]
@@ -88,9 +103,13 @@ def start():
         print("Container manager: data retrieved, sending packets to containers")
         for city in cities:
             send_packet_to_container(city)
-        print("Container manager: packets successfully delivered, now sleeping for 60 seconds")
+        print("Container manager: packets successfully delivered, now sending stop messages")
+
+        send_stop_messages()
+
         user_input = input("Do you want to continue? (y/n)")
         if user_input.lower() == "n":
             keep_running = False
         else:
+            print("Container manager: sleeping for 60 seconds")
             time.sleep(60)
