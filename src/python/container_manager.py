@@ -18,7 +18,7 @@ import data_retriever
 def build_image(image_name):
     client = docker.from_env()
     try:
-        with open(os.path.join("/", 'Dockerfile_container'), 'rb') as f:
+        with open(os.path.join("/", '../docker/Dockerfile_container'), 'rb') as f:
             image = client.images.build(fileobj=f, tag=image_name, path="/Dockerfile_container")
 
         print(f"Image {image_name} successfully created")
@@ -58,9 +58,10 @@ def create_containers():
 
 
 def send_stop_messages():
+    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
     countries = data_retriever.retrieve_countries()
 
-    with open("routing.json", 'r') as file:
+    with open(ROOT_DIR + "/progetto-SDCC/data/routing.json", 'r') as file:
         data = json.load(file)
 
     for country in countries:
@@ -73,24 +74,26 @@ def send_stop_messages():
 
 
 def send_packet_to_container(packet):
-
+    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
     dest_country = packet.country.lower()[1:]
 
-    with open("routing.json", 'r') as file:
+    with open(ROOT_DIR + "/progetto-SDCC/data/routing.json", 'r') as file:
         data = json.load(file)
 
     port_number = data[f"{dest_country}"]
 
     url = f"http://localhost:{port_number}/{dest_country}"
 
-    with open("data.json", 'w') as file:
+    with open(ROOT_DIR + "/progetto-SDCC/data/data.json", 'w') as file:
         json.dump(packet.data, file)
 
-    with open("data.json", 'r') as file:
+    with open(ROOT_DIR + "/progetto-SDCC/data/data.json", 'r') as file:
         files = {'file': file}
         response = requests.post(url, files=files)
         print(response)
 
+    if os.path.exists(ROOT_DIR + "/progetto-SDCC/data/data.json"):
+        os.remove(ROOT_DIR + "/progetto-SDCC/data/data.json")
 
 # The manager retrieves data every 60 seconds, and sends packets to containers
 def start():

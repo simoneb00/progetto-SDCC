@@ -1,15 +1,15 @@
 """ Entry-point """
 
-import data_retriever
 import container_manager
 import subprocess
+import os
 
 # sending packets to container (TODO remove)
 
 
 
 if __name__ == "__main__":
-
+    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
     # container_manager.create_containers()
 
     # cities = data_retriever.entry_point()  # tuples (name, country, lat, lon, data)
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     #     print(f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like},{packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}]")
 
     try:
-        subprocess.run(["bash", "./create_containers.sh"])
+        subprocess.run(["bash", ROOT_DIR + "/progetto-SDCC/src/docker/create_containers.sh"])
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
 

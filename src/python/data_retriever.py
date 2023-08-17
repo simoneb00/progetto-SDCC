@@ -4,6 +4,7 @@ the cities considered are specified in the file cities.csv.
 """
 import csv
 import requests
+import os
 
 
 class City:
@@ -61,7 +62,9 @@ def retrieve_coordinates(city, country, api_key):
 
 def retrieve_cities(api_key):
     cities_array = []
-    cities, codes = parse_csv_file("cities.csv")
+    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
+    cities, codes = parse_csv_file(ROOT_DIR + "/progetto-SDCC/data/cities.csv")
+
     for i in range(0, len(cities)):
         lat, lon = retrieve_coordinates(cities[i], codes[i], api_key)
         cities_array.append(City(cities[i], codes[i], lat, lon))
@@ -81,7 +84,8 @@ def retrieve_weather_data(lat, lon, api_key):
 
 
 def retrieve_countries():
-    cities, codes = parse_csv_file("cities.csv")
+    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
+    cities, codes = parse_csv_file(ROOT_DIR + "/progetto-SDCC/data/cities.csv")
     codes_unique = list(set(codes))
     return codes_unique
 
