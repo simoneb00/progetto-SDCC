@@ -11,10 +11,8 @@ It must perform the following operations:
 
 import datetime
 import docker
-
 from flask import Flask, request, json
 import os
-
 import cloud_interface
 
 
@@ -33,7 +31,9 @@ class Packet:
 
 app = Flask(__name__)
 container_name = os.environ.get("CONTAINER_NAME")
+print(container_name)
 container_country = container_name[len(container_name) - 2:]
+print(container_country)
 
 
 def pack_city_data(data):
@@ -65,7 +65,8 @@ def pack_city_data(data):
 
 
 def send_packet(packet):
-    print(f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.pressure}, {packet.humidity}, {packet.date_time}]")
+    print(
+        f"[{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.pressure}, {packet.humidity}, {packet.date_time}]")
     cloud_interface.send_data_to_cloud(packet)
 
 
@@ -80,6 +81,7 @@ def shutdown():
     except docker.errors.APIError as e:
         print(f"Errore nell'interruzione del container {container_name}: {e}")
     return "shutting down", 200
+
 
 @app.route(f'/{container_country}', methods=['POST'])
 def upload():
@@ -104,9 +106,8 @@ def hello():
 if __name__ == "__main__":
     print(f"{container_name}, representing the country {container_country}")
 
-    with open("../../data/routing.json", 'r') as file:
+    with open("routing.json", 'r') as file:
         data = json.load(file)
 
     port_number = data[f"{container_country}"]
     app.run(host='0.0.0.0', port=port_number)
-

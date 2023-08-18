@@ -4,4 +4,5 @@ ADD data/routing.json .
 ADD src/python/cloud_interface.py .
 RUN pip install flask
 RUN pip install bash
-CMD ["python3", "container.py"]
+RUN pip install docker
+ENTRYPOINT ["python3", "container.py"]
