@@ -10,14 +10,10 @@ It must perform the following operations:
 """
 
 import datetime
-import signal
-import subprocess
-import threading
 import docker
 
 from flask import Flask, request, json
 import os
-from multiprocessing import Process
 
 import cloud_interface
 
@@ -108,7 +104,7 @@ def hello():
 if __name__ == "__main__":
     print(f"{container_name}, representing the country {container_country}")
 
-    with open("routing.json", 'r') as file:
+    with open("../../data/routing.json", 'r') as file:
         data = json.load(file)
 
     port_number = data[f"{container_country}"]

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd data
 
 if [ ! -f "countries.txt" ]; then
     echo "The file countries.txt does not exist."
