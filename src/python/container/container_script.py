@@ -14,20 +14,7 @@ import docker
 from flask import Flask, request, json
 import os
 import cloud_interface
-
-
-class Packet:
-    def __init__(self, name, country, temp, feels_like, temp_min, temp_max, pressure, humidity, date_time):
-        self.name = name
-        self.country = country
-        self.temp = temp
-        self.feels_like = feels_like
-        self.temp_min = temp_min
-        self.temp_max = temp_max
-        self.pressure = pressure
-        self.humidity = humidity
-        self.date_time = date_time
-
+import packet
 
 app = Flask(__name__)
 container_name = os.environ.get("CONTAINER_NAME")
@@ -53,15 +40,15 @@ def pack_city_data(data):
     celsius_max = kelvin_max - 273.15
     date_time = datetime.datetime.fromtimestamp(unix_timestamp)
 
-    return Packet(name,
-                  country,
-                  celsius_temp,
-                  celsius_feels_like,
-                  celsius_min,
-                  celsius_max,
-                  pressure,
-                  humidity,
-                  date_time)
+    return packet.Packet(name,
+                         country,
+                         celsius_temp,
+                         celsius_feels_like,
+                         celsius_min,
+                         celsius_max,
+                         pressure,
+                         humidity,
+                         date_time)
 
 
 def send_packet(packet):

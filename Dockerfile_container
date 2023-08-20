@@ -1,8 +1,10 @@
 FROM python:3.8
-ADD src/python/container/container.py .
+ADD src/python/container/container_script.py .
+ADD src/python/container/packet.py .
 ADD data/routing.json .
 ADD src/python/container/cloud_interface.py .
 RUN pip install flask
 RUN pip install bash
 RUN pip install docker
-ENTRYPOINT ["python3", "container.py"]
+RUN ls
+ENTRYPOINT ["python3", "container_script.py"]

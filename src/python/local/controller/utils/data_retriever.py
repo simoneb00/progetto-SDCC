@@ -3,23 +3,12 @@ this file retrieves weather conditions from the website openweathermap.org
 the cities considered are specified in the file cities.csv.
 """
 import csv
-import subprocess
 
 import requests
 import os
-from src.python.utils import random_subset_generator
 
-
-class City:
-    def __init__(self, name, country, lat, lon, data=None):
-        self.name = name
-        self.country = country
-        self.lat = lat
-        self.lon = lon
-        self.data = data
-
-    def set_data(self, data):
-        self.data = data
+from src.python.local.controller.utils import random_subset_generator
+from src.python.local.model import city
 
 
 def parse_csv_file(file_path):
@@ -82,7 +71,7 @@ def retrieve_coordinates(city, country, api_key):
         return None
 
 
-def retrieve_cities(api_key):
+def retrieve_cities_and_codes(api_key):
     cities_array = []
     root_dir = os.path.dirname(os.path.abspath(os.curdir))
     cities, codes = parse_csv_file(root_dir + "/progetto-SDCC/data/cities.csv")
@@ -96,20 +85,11 @@ def retrieve_cities(api_key):
     for i in subset:
         subset_cities.append(cities[i - 1])
         subset_codes.append(codes[i - 1])
-        root_dir = os.path.dirname(os.path.abspath(os.curdir))
-
-        try:
-            subprocess.run(["bash", root_dir + "/progetto-SDCC/create_containers.sh", str.lower(codes[i - 1][1:]),
-                            str(8080 + countries.index(str.lower(codes[i - 1][1:])))])
-        except subprocess.CalledProcessError as e:
-            print("Error in calling the containers' creation script")
-
-    print(subset_cities)
-    print(subset_codes)
 
     for i in range(0, len(subset_cities)):
+        country_number = countries.index(str.lower(subset_codes[i][1:]))
         lat, lon = retrieve_coordinates(subset_cities[i], subset_codes[i], api_key)
-        cities_array.append(City(subset_cities[i], subset_codes[i], lat, lon))
+        cities_array.append(city.City(subset_cities[i], subset_codes[i], lat, lon,country_number))
     return cities_array
 
 
@@ -135,11 +115,10 @@ def retrieve_countries():
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
-    cities = retrieve_cities(api_key)
+    cities = retrieve_cities_and_codes(api_key)
 
     for city in cities:
         data = retrieve_weather_data(city.lat, city.lon, api_key)
         city.set_data(data)
 
-    print("Data retrieved")
     return cities
