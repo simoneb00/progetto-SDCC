@@ -1,0 +1,26 @@
+FROM ubuntu:latest
+RUN apt-get update
+
+# Install python
+RUN apt-get install -y python3
+RUN apt-get install -y python3-pip
+
+# Add project files
+ADD src/python/container/coordinator/coordinator_container.py .
+ADD src/python/container/coordinator/create_containers.sh .
+ADD src/python/container/edge/edge_container.py .
+ADD data/routing.json .
+ADD src/python/container/edge/cloud_interface.py .
+
+# Install python modules
+RUN pip3 install flask
+RUN pip3 install bash
+RUN pip3 install docker
+
+# Install docker
+RUN apt-get install -qy curl
+RUN curl -sSL https://get.docker.com/ | sh
+RUN docker run hello-world
+
+# Exec main app
+ENTRYPOINT ["python3", "coordinator_container.py"]

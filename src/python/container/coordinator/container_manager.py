@@ -6,7 +6,6 @@ The countries are retrieved from the file cities.csv.
 """
 import json
 import time
-import docker
 import os
 import requests
 import data_retriever

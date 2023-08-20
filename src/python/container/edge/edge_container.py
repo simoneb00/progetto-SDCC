@@ -31,9 +31,7 @@ class Packet:
 
 app = Flask(__name__)
 container_name = os.environ.get("CONTAINER_NAME")
-print(container_name)
 container_country = container_name[len(container_name) - 2:]
-print(container_country)
 
 
 def pack_city_data(data):

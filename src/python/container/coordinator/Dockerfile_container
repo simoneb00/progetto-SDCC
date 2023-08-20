@@ -1,0 +1,10 @@
+FROM python:3.8
+RUN ls
+#ADD edge_container.py .
+#ADD routing.json .
+#ADD cloud_interface.py .
+RUN echo Ok
+#RUN pip install flask
+#RUN pip install bash
+#RUN pip install docker
+#ENTRYPOINT ["python3", "edge_container.py"]

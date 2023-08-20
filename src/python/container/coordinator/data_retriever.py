@@ -7,7 +7,7 @@ import subprocess
 
 import requests
 import os
-import random_subset_generator
+from src.python.utils import random_subset_generator
 
 
 class City:
