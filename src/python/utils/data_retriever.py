@@ -7,7 +7,7 @@ import subprocess
 
 import requests
 import os
-import random_subset_generator
+from src.python.utils import random_subset_generator
 
 
 class City:
@@ -30,7 +30,7 @@ def parse_csv_file(file_path):
         with open(file_path, newline='', encoding='utf-8') as csvfile:
             csvreader = csv.DictReader(csvfile)
             for row in csvreader:
-                city = row["City"]
+                city = row['City']
                 code = row[" ISO_3166_code"]
                 cities.append(city)
                 codes.append(code)
@@ -84,29 +84,28 @@ def retrieve_coordinates(city, country, api_key):
 
 def retrieve_cities(api_key):
     cities_array = []
-    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
-    cities, codes = parse_csv_file(ROOT_DIR + "/progetto-SDCC/data/cities.csv")
-    countries = parse_csv_file_counties(ROOT_DIR + "/progetto-SDCC/data/countries.csv")
+    root_dir = os.path.dirname(os.path.abspath(os.curdir))
+    cities, codes = parse_csv_file(root_dir + "/progetto-SDCC/data/cities.csv")
+    countries = parse_csv_file_counties(root_dir + "/progetto-SDCC/data/countries.csv")
 
-    subset = random_subset_generator.generate()
+    subset = random_subset_generator.generate()  # Number from 1 to 55
 
     subset_cities = []
     subset_codes = []
 
-    print(subset)
-
     for i in subset:
-        subset_cities.append(cities[i])
-        subset_codes.append(codes[i])
-        ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
+        subset_cities.append(cities[i - 1])
+        subset_codes.append(codes[i - 1])
+        root_dir = os.path.dirname(os.path.abspath(os.curdir))
 
         try:
-            subprocess.run(["bash", ROOT_DIR + "/progetto-SDCC/create_containers.sh", str.lower(codes[i][1:]),
-                            str(8080 + countries.index(str.lower(codes[i][1:])))])
+            subprocess.run(["bash", root_dir + "/progetto-SDCC/create_containers.sh", str.lower(codes[i - 1][1:]),
+                            str(8080 + countries.index(str.lower(codes[i - 1][1:])))])
         except subprocess.CalledProcessError as e:
             print("Error in calling the containers' creation script")
 
     print(subset_cities)
+    print(subset_codes)
 
     for i in range(0, len(subset_cities)):
         lat, lon = retrieve_coordinates(subset_cities[i], subset_codes[i], api_key)

@@ -6,10 +6,9 @@ The countries are retrieved from the file cities.csv.
 """
 import json
 import time
-import docker
 import os
 import requests
-import data_retriever
+from utils import data_retriever
 
 
 # def send_stop_messages():

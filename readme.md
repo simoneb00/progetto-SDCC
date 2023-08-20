@@ -1,5 +1,5 @@
 # TODO
-* Aggiungere randomicità alle città
+* Aggiungere randomicità alle città (Done)
 * Implementare il meccanismo di cold start:
   * Container intermedio sempre attivo che mantiene "tabella" dei container attivi, si occupa del routing e, se un container che deve ricevere dati è inattivo, il dispatcher attiva il container e, nel frattempo, soddisfa la richiesta.
 * Aggiungere meccanismo di spegnimento dei container
