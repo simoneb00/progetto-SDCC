@@ -14,7 +14,10 @@ from src.python.local.controller.utils import data_retriever
 from src.python.local.model import container
 
 def send_packet_to_container(packet):
-    root_dir = os.path.dirname(os.path.abspath(os.curdir))
+    if os.name == 'posix':
+        root_dir = os.path.dirname(os.path.abspath(os.curdir)+"/../")  # todo improve
+    else:
+        root_dir = os.path.dirname(os.path.abspath(os.curdir))
     dest_country = packet.country.lower()[1:]
 
     with open(root_dir + "/progetto-SDCC/data/routing.json", 'r') as file:
@@ -83,14 +86,14 @@ def start():
             send_packet_to_container(city)
             print(all_containers)
 
-        print("Contry    Keep_Alive      Checked")
+        print("Country    Keep_Alive    Checked")
         for cnt in all_containers.copy().values():
             if not cnt.checked:
                 cnt.pass_time()
                 if cnt.alive_round > 1:
                     container_launcher.shutdown_container(cnt)
                     all_containers.pop(cnt.id)
-            print(cnt.id + " " + str(cnt.alive_round) + " " + str(cnt.checked))
+            print(cnt.id + "    " + str(cnt.alive_round) + "    " + str(cnt.checked))
 
         print("Container manager: sleeping for 60 seconds")
         time.sleep(60)

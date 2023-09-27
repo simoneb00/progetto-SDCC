@@ -73,9 +73,13 @@ def retrieve_coordinates(city, country, api_key):
 
 def retrieve_cities_and_codes(api_key):
     cities_array = []
-    root_dir = os.path.dirname(os.path.abspath(os.curdir))
-    cities, codes = parse_csv_file(root_dir + "/progetto-SDCC/data/cities.csv")
-    countries = parse_csv_file_counties(root_dir + "/progetto-SDCC/data/countries.csv")
+    if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
+        os.chdir(os.getcwd()+"/../../../")
+    root_dir = os.getcwd()
+
+    cities, codes = parse_csv_file(root_dir + "/data/cities.csv")
+    countries = parse_csv_file_counties(root_dir + "/data/countries.csv")
+
 
     subset = random_subset_generator.generate()  # Number from 1 to 55
 
@@ -89,7 +93,7 @@ def retrieve_cities_and_codes(api_key):
     for i in range(0, len(subset_cities)):
         country_number = countries.index(str.lower(subset_codes[i][1:]))
         lat, lon = retrieve_coordinates(subset_cities[i], subset_codes[i], api_key)
-        cities_array.append(city.City(subset_cities[i], subset_codes[i], lat, lon,country_number))
+        cities_array.append(city.City(subset_cities[i], subset_codes[i], lat, lon, country_number))
     return cities_array
 
 
