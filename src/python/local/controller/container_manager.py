@@ -38,7 +38,7 @@ def send_packet_to_container(packet):
 
         while (time_count < 30) and (not server_running):  # Needed to wait flask app to be running
             try:
-                time.sleep(0.01)
+                time.sleep(1)
                 time_count = time_count + 1
                 requests.post(url, files=files, headers=headers)
                 server_running = True
