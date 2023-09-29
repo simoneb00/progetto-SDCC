@@ -83,9 +83,29 @@ def upload():
         # todo remove below
         print(f"{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}")
         print('Sending data to cloud')
-        code, text = cloud_interface.send_packet(packet)
-        print(f"{code}: {text}")
-        return text, code
+        code, stats = cloud_interface.send_packet(packet)
+
+        stats = json.loads(stats)
+
+        # print avg statistics
+        avg_temp = stats.get('Avg Temperature')
+        avg_feels_like = stats.get('Avg Feels Like')
+        avg_min_temp = stats.get('Avg Min Temperature')
+        avg_max_temp = stats.get('Avg Max Temperature')
+        avg_pressure = stats.get('Avg Pressure')
+        avg_humidity = stats.get('Avg Humidity')
+
+        print(f'Average statistics for the city {packet.name}')
+        print('___________________________________')
+        print(f'Avg Temperature:        {"%.2f" % avg_temp}°C')
+        print(f'Avg Feels Like:         {"%.2f" % avg_feels_like}°C')
+        print(f'Avg Min Temperature:    {"%.2f" % avg_min_temp}°C')
+        print(f'Avg Max Temperature:    {"%.2f" % avg_max_temp}°C')
+        print(f'Avg Pressure:           {"%.2f" % avg_pressure} hPa')
+        print(f'Avg Humidity:           {"%.2f" % avg_humidity}%')
+        print('___________________________________')
+
+        return stats, code
 
 
 @app.route('/')
