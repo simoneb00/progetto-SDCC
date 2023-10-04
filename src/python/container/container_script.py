@@ -83,9 +83,13 @@ def upload():
         # todo remove below
         print(f"{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}")
         print('Sending data to cloud')
-        code, stats = cloud_interface.send_packet(packet)
+        code, message = cloud_interface.send_packet(packet)
+        print(f'{code}: {message}')
 
-        stats = json.loads(stats)
+        print('Sending query to cloud')
+        query_code, query_result = cloud_interface.query(packet.name, packet.country)
+
+        stats = json.loads(query_result)
 
         # print avg statistics
         avg_temp = stats.get('Avg Temperature')
@@ -105,7 +109,7 @@ def upload():
         print(f'Avg Humidity:           {"%.2f" % avg_humidity}%')
         print('___________________________________')
 
-        return stats, code
+        return message, code
 
 
 @app.route('/')

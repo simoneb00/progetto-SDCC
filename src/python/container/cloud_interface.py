@@ -31,3 +31,10 @@ def send_packet(packet):
     r = requests.post(url=endpoint, data=json_data, headers=headers)
     return r.status_code, r.text
 
+def query(city, country):
+    endpoint = 'https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData'
+    data = {'city': city, 'country': country}
+    headers = {'Content-Type': 'application/json'}
+    json_data = json.dumps(data)
+    r = requests.post(url=endpoint, data=json_data, headers=headers)
+    return r.status_code, r.text
