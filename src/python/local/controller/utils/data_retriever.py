@@ -7,8 +7,8 @@ import csv
 import requests
 import os
 
-from src.python.local.controller.utils import random_subset_generator
-from src.python.local.model import city
+from . import random_subset_generator
+from model import city
 
 
 def parse_csv_file(file_path):

@@ -9,9 +9,9 @@ import time
 import os
 import requests
 
-from src.python.local.controller import container_launcher
-from src.python.local.controller.utils import data_retriever
-from src.python.local.model import container
+from . import container_launcher
+from .utils import data_retriever
+from model import container
 
 def send_packet_to_container(packet):
     if os.name == 'posix':
