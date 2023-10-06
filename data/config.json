@@ -1,0 +1,4 @@
+{
+    "api_key" : "9ef842fefcbe90d181f3982133dadd61",
+    "api_url" : "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=9ef842fefcbe90d181f3982133dadd61"
+}

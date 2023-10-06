@@ -8,6 +8,7 @@ import json
 import time
 import os
 import requests
+import threading
 
 from . import container_launcher
 from .utils import data_retriever
@@ -62,38 +63,97 @@ def uncheck_all(containers):
     for container in containers.values():
         container.reset()
 
-
-# The manager retrieves data every 60 seconds, and sends packets to containers
-def start():
+# The manager starts a thread to retrieve data every 60 seconds, and sends
+# Be careful that the daemon doesn't take trace of the already present containers at the first iteration, or until some request for all containers is generated
+def thread_daemon_data_generator(all_containers,lock):
     keep_running = True
-    all_containers = {}  # Dict of containers running to manage round exits {container_it:container}
+
 
     while keep_running:
-        uncheck_all(all_containers)
-        print("Container manager: starting to retrieve data...")
+        
+        print("Thread for data generation: starting to retrieve data...")
         cities = data_retriever.retrieve()
 
         for city in cities:
             print(city.name + " " + city.country)
-            is_running = check_new_containers(city, all_containers)
+            
+            # Go into critical section to check container status
+            with lock:
+                is_running = check_new_containers(city, all_containers)
+                
+                
             if not is_running:
                 container_launcher.launch_container(str.lower(city.country[1:]), city.country_number)
-                all_containers["container_" + str.lower(city.country[1:])] = container.Container(
-                    "container_" + str.lower(city.country[1:]))
+                with lock:
+                    all_containers["container_" + str.lower(city.country[1:])] = container.Container(
+                        "container_" + str.lower(city.country[1:]))
             else:
-                all_containers["container_" + str.lower(city.country[1:])].reset()
-                all_containers["container_" + str.lower(city.country[1:])].check()
+                with lock:
+                    all_containers["container_" + str.lower(city.country[1:])].reset()                
+                
+        
             send_packet_to_container(city)
-            print(all_containers)
+
+
+
+        print("Thread for data generation: sleeping for 60 seconds")
+        time.sleep(60)
+
+
+def thread_daemon_container_manager(all_containers,lock):
+    keep_running = True
+    round_index = 0
+
+    # This loop has the responsability to stop all containers which are alive for more than 2 rounds
+    while keep_running:
+        print("Thread to manage container: starting to check...")        
+        print(" ***************** ROUND INDEX IS ************************")
+        print(" *                        " + str(round_index) + "                              *")   
+        print(" *********************************************************")
+        round_index = round_index + 1
+        with lock:
+            # Set all containers to false (unchecked)
+            uncheck_all(all_containers)
 
         print("Country    Keep_Alive    Checked")
         for cnt in all_containers.copy().values():
-            if not cnt.checked:
-                cnt.pass_time()
-                if cnt.alive_round > 1:
-                    container_launcher.shutdown_container(cnt)
-                    all_containers.pop(cnt.id)
+            with lock:
+                all_containers[cnt.id].pass_time()
             print(cnt.id + "    " + str(cnt.alive_round) + "    " + str(cnt.checked))
 
-        print("Container manager: sleeping for 60 seconds")
+
+        for cnt in all_containers.copy().values():
+            if not all_containers[cnt.id].checked:
+                with lock:
+                    all_containers[cnt.id].checked = True
+                if all_containers[cnt.id].alive_round > 1:
+                    container_launcher.shutdown_container(cnt)
+                    with lock:
+                        all_containers.pop(cnt.id)
+
+        print("Thread to manage container: sleeping for 60 seconds")
         time.sleep(60)
+
+
+
+# The manager retrieves data every 60 seconds, and sends packets to containers
+def start():
+    all_containers = {}  # Dict of containers running to manage round exits {container_it:container} sahred nei due thread
+    
+    # Generate exclusive lock to maintain coherent container time lived
+    lock = threading.Lock()
+    
+    # Crea il thread principale per la gestione dei container
+    main_thread = threading.Thread(target=thread_daemon_container_manager, args=(all_containers,lock))
+    # Crea il thread secondario per la generazione dei dati
+    data_thread = threading.Thread(target=thread_daemon_data_generator, args=(all_containers,lock))
+
+    # Avvia il thread
+    data_thread.start()
+    main_thread.start()
+
+    # Attendere che il data_thread abbia terminato l'esecuzione 
+    main_thread.join()
+    data_thread.join()
+
+    print("Il thread principale ha terminato.")

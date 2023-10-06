@@ -116,6 +116,14 @@ def retrieve_countries():
     return codes_unique
 
 
+def get_all_cities():
+    if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
+        os.chdir(os.getcwd()+"/../../../")
+    root_dir = os.getcwd()
+
+    cities, codes = parse_csv_file(root_dir + "/data/cities.csv")
+    return cities
+
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
