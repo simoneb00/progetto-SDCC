@@ -1,11 +1,8 @@
-"""
-The following file contains the AWS Lambda functions
-"""
-
 import json
 import boto3
 import botocore
 import csv
+from datetime import datetime
 
 
 def create_csv(client, file_name, bucket_name):
@@ -96,6 +93,10 @@ def create_dynamodb_table(dynamodb_client, data):
                 {
                     'AttributeName': 'Date',
                     'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'Day',
+                    'AttributeType': 'S'
                 }
             ],
             TableName='table-sdcc-' + data.get('country'),
@@ -112,7 +113,25 @@ def create_dynamodb_table(dynamodb_client, data):
             ProvisionedThroughput={
                 'ReadCapacityUnits': 5,
                 'WriteCapacityUnits': 5,
-            }
+            },
+            GlobalSecondaryIndexes=[
+            {
+                'IndexName': 'DayIndex',
+                'KeySchema': [
+                    {
+                        'AttributeName': 'Day',
+                        'KeyType': 'HASH'
+                    },
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
+                },
+                'ProvisionedThroughput': {
+                    'ReadCapacityUnits': 5,
+                    'WriteCapacityUnits': 5
+                }
+            },
+        ]
         )
         print(response)
     except dynamodb_client.exceptions.ResourceInUseException as e:
@@ -122,6 +141,12 @@ def create_dynamodb_table(dynamodb_client, data):
 
 
 def put_data(dynamodb, data):
+
+    string_date = data.get('date_time')     # iso formatted date
+    date_string = string_date[:10]
+    time_string = string_date[11:]
+
+
     dynamodb.put_item(
         Item={
             'Name': {
@@ -148,8 +173,14 @@ def put_data(dynamodb, data):
             'Humidity': {
                 'N': str(data.get('humidity')),
             },
+            'Day': {
+                'S': date_string,
+            },
+            'Time': {
+                'S': time_string,
+            },
             'Date': {
-                'S': data.get('date_time'),
+                'S': string_date,
             }
         },
         TableName='table-sdcc-' + data.get('country')
@@ -165,13 +196,12 @@ def dynamodb_persistence(data):
 
     put_data(dynamodb_client, data)
 
-
 def lambda_handler(event, context):
     data = json.loads(event['body'])
 
     print('received data for country ' + data.get('country').upper())
 
-    s3_persistence(data)
+    #s3_persistence(data)
     dynamodb_persistence(data)
 
     return {

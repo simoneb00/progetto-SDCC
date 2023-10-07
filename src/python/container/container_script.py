@@ -86,28 +86,30 @@ def upload():
         code, message = cloud_interface.send_packet(packet)
         print(f'{code}: {message}')
 
-        print('Sending query to cloud')
-        query_code, query_result = cloud_interface.query(packet.name, packet.country)
+        print('Sending queries to cloud')
+        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-06', 0, 0)
+        if query_code != 200:
+            print(f'{query_code} - {query_result}')
+        else:
+            stats = json.loads(query_result)
+            # print avg statistics
+            print(stats)
 
-        stats = json.loads(query_result)
+        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-06', 1, 0)
+        if query_code != 200:
+            print(f'{query_code} - {query_result}')
+        else:
+            stats = json.loads(query_result)
+            # print avg statistics
+            print(stats)
 
-        # print avg statistics
-        avg_temp = stats.get('Avg Temperature')
-        avg_feels_like = stats.get('Avg Feels Like')
-        avg_min_temp = stats.get('Avg Min Temperature')
-        avg_max_temp = stats.get('Avg Max Temperature')
-        avg_pressure = stats.get('Avg Pressure')
-        avg_humidity = stats.get('Avg Humidity')
-
-        print(f'Average statistics for the city {packet.name}')
-        print('___________________________________')
-        print(f'Avg Temperature:        {"%.2f" % avg_temp}°C')
-        print(f'Avg Feels Like:         {"%.2f" % avg_feels_like}°C')
-        print(f'Avg Min Temperature:    {"%.2f" % avg_min_temp}°C')
-        print(f'Avg Max Temperature:    {"%.2f" % avg_max_temp}°C')
-        print(f'Avg Pressure:           {"%.2f" % avg_pressure} hPa')
-        print(f'Avg Humidity:           {"%.2f" % avg_humidity}%')
-        print('___________________________________')
+        query_code, query_result = cloud_interface.query(None, packet.country, '2023-10-06', 0, 1)
+        if query_code != 200:
+            print(f'{query_code} - {query_result}')
+        else:
+            stats = json.loads(query_result)
+            # print avg statistics
+            print(stats)
 
         return message, code
 
