@@ -16,10 +16,7 @@ def launch_container(country, country_number):
 
     root_dir = os.getcwd()
     try:
-        # root_dir = "/home/simoneb/PycharmProjects"
         subprocess.call(["bash", root_dir + "/create_containers.sh", country, str(8080 + country_number)])
-        # subprocess.call(["bash " + os.getcwd() + "/create_containers.sh", country, str(8080 + country_number)])
-
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
 
