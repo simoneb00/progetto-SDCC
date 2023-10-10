@@ -9,21 +9,43 @@ RUN mkdir app/python/local/controller/
 RUN mkdir app/python/local/controller/utils/
 RUN mkdir app/python/local/model/
 RUN mkdir app/bash/
-RUN mkdir app/docker_files
+RUN mkdir app/docker_files/
+RUN mkdir app/data/
+RUN mkdir app/aws/
+
+
+# Transfer python code
+ADD aws/daily_statistics.py app/aws/daily_statistics.py
+ADD aws/data_collector.py app/aws/data_collector.py
+ADD aws/query.py app/aws/query.py
+
+
+# Transfer data into container
+ADD data/cities.csv data/cities.csv
+ADD data/countries.csv data/countries.csv
+ADD data/config.json data/config.json 
+ADD data/routing.json data/routing.json 
+
 
 # Add all files in the container's directory
-ADD docker_files/Dockerfile_container app/docker_files/Dockerfile_container
-ADD bash/create_containers.sh app/bash/create_containers.sh
-ADD bash/shutdown.sh app/bash/shutdown.sh
-ADD python/container/cloud_interface.py app/python/container/cloud_interface.py
-ADD python/container/container_script.py app/python/container/container_script.py
-ADD python/container/packet.py app/python/container/packet.py
-ADD python/main_container/entry_point.py app/python/local/local/entry_point.py
-ADD python/main_container/controller/container_launcher.py app/python/local/controller/container_launcher.py
-ADD python/main_container/controller/container_manager.py app/python/local/controller/container_manager.py
-ADD python/main_container/controller/utils/data_retriver.py app/python/local/controller/utils/data_retriver.py
-ADD python/main_container/controller/utils/random_subset_generator.py app/python/local/controller/utils/random_subset_generator.py
-ADD python/main_container/model/city.py app/python/local/model/city.py
-ADD python/main_container/model/container.py app/python/local/model/container.py
+ADD src/docker_files/Dockerfile_container app/docker_files/Dockerfile_container
+ADD src/bash/create_containers.sh app/bash/create_containers.sh
+ADD src/bash/shutdown.sh app/bash/shutdown.sh
+ADD src/python/container/cloud_interface.py app/python/container/cloud_interface.py
+ADD src/python/container/container_script.py app/python/container/container_script.py
+ADD src/python/container/packet.py app/python/container/packet.py
+ADD src/python/main_container/entry_point.py app/python/local/entry_point.py
+ADD src/python/main_container/controller/container_launcher.py app/python/local/controller/container_launcher.py
+ADD src/python/main_container/controller/container_manager.py app/python/local/controller/container_manager.py
+ADD src/python/main_container/controller/utils/data_retriever.py app/python/local/controller/utils/data_retriever.py
+ADD src/python/main_container/controller/utils/random_subset_generator.py app/python/local/controller/utils/random_subset_generator.py
+ADD src/python/main_container/model/city.py app/python/local/model/city.py
+ADD src/python/main_container/model/container.py app/python/local/model/container.py
 
+# Import python modules
+RUN pip install bash
+RUN pip install docker
+RUN pip install requests
+
+# Launch main application in container
 ENTRYPOINT ["python3", "app/python/local/entry_point.py"]

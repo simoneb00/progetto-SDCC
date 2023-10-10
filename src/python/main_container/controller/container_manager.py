@@ -21,17 +21,17 @@ def send_packet_to_container(packet):
         root_dir = os.path.dirname(os.path.abspath(os.curdir))
     dest_country = packet.country.lower()[1:]
 
-    with open(root_dir + "/progetto-SDCC/data/routing.json", 'r') as file:
+    with open(root_dir + "/app/data/routing.json", 'r') as file:
         data = json.load(file)
 
     port_number = data[f"{dest_country}"]
 
     url = f"http://localhost:{port_number}/{dest_country}"
 
-    with open(root_dir + "/progetto-SDCC/data/data.json", 'w') as file:
+    with open(root_dir + "/app/data/data.json", 'w') as file:
         json.dump(packet.data, file)
 
-    with open(root_dir + "/progetto-SDCC/data/data.json", 'r') as file:
+    with open(root_dir + "/app/data/data.json", 'r') as file:
         files = {'file': file}
         headers = requests.utils.default_headers()
         time_count = 0
@@ -46,8 +46,8 @@ def send_packet_to_container(packet):
             except Exception as e:
                 server_running = False
 
-    if os.path.exists(root_dir + "/progetto-SDCC/data/data.json"):
-        os.remove(root_dir + "/progetto-SDCC/data/data.json")
+    if os.path.exists(root_dir + "/app/data/data.json"):
+        os.remove(root_dir + "/app/data/data.json")
 
 
 def check_new_containers(city, containers):
