@@ -1,0 +1,29 @@
+FROM python:3.8
+
+# Make all directories to replicate the project on container
+RUN mkdir app/
+RUN mkdir app/python/
+RUN mkdir app/python/container/
+RUN mkdir app/python/local/
+RUN mkdir app/python/local/controller/
+RUN mkdir app/python/local/controller/utils/
+RUN mkdir app/python/local/model/
+RUN mkdir app/bash/
+RUN mkdir app/docker_files
+
+# Add all files in the container's directory
+ADD docker_files/Dockerfile_container app/docker_files/Dockerfile_container
+ADD bash/create_containers.sh app/bash/create_containers.sh
+ADD bash/shutdown.sh app/bash/shutdown.sh
+ADD python/container/cloud_interface.py app/python/container/cloud_interface.py
+ADD python/container/container_script.py app/python/container/container_script.py
+ADD python/container/packet.py app/python/container/packet.py
+ADD python/main_container/entry_point.py app/python/local/local/entry_point.py
+ADD python/main_container/controller/container_launcher.py app/python/local/controller/container_launcher.py
+ADD python/main_container/controller/container_manager.py app/python/local/controller/container_manager.py
+ADD python/main_container/controller/utils/data_retriver.py app/python/local/controller/utils/data_retriver.py
+ADD python/main_container/controller/utils/random_subset_generator.py app/python/local/controller/utils/random_subset_generator.py
+ADD python/main_container/model/city.py app/python/local/model/city.py
+ADD python/main_container/model/container.py app/python/local/model/container.py
+
+ENTRYPOINT ["python3", "app/python/local/entry_point.py"]

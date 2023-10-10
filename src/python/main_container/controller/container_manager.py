@@ -136,6 +136,11 @@ def thread_daemon_container_manager(all_containers,lock):
 
 
 
+def launch_main_container():
+    container_launcher.launch_main_container()
+    
+
+
 # The manager retrieves data every 60 seconds, and sends packets to containers
 def start():
     all_containers = {}  # Dict of containers running to manage round exits {container_it:container} sahred nei due thread
