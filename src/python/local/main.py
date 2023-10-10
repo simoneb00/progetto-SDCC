@@ -10,3 +10,5 @@ if __name__ == "__main__":
         subprocess.call(["bash", root_dir + "/src/bash/create_main_container.sh"])
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
+        
+        
