@@ -73,8 +73,10 @@ def retrieve_coordinates(city, country, api_key):
 
 def retrieve_cities_and_codes(api_key):
     cities_array = []
-    if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
-        os.chdir(os.getcwd()+"/../../../")
+
+    # if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
+    #     os.chdir(os.getcwd()+"/../../../")
+
     root_dir = os.getcwd()
 
     cities, codes = parse_csv_file(root_dir + "/data/cities.csv")
