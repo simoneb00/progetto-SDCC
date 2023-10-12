@@ -5,7 +5,6 @@ port=$2
 
 container_name="container_$country"
 
-cd src/
 
 if [ "$(docker ps -aq -f name="${container_name}")" ]; then
   echo "The container ${container_name} already exist, so its creation is skipped"

@@ -74,13 +74,8 @@ def retrieve_coordinates(city, country, api_key):
 def retrieve_cities_and_codes(api_key):
     cities_array = []
 
-    # if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
-    #     os.chdir(os.getcwd()+"/../../../")
-
-    root_dir = os.getcwd()
-
-    cities, codes = parse_csv_file(root_dir + "/data/cities.csv")
-    countries = parse_csv_file_counties(root_dir + "/data/countries.csv")
+    cities, codes = parse_csv_file("app/data/cities.csv")
+    countries = parse_csv_file_counties("app/data/countries.csv")
 
 
     subset = random_subset_generator.generate()  # Number from 1 to 55
@@ -112,18 +107,13 @@ def retrieve_weather_data(lat, lon, api_key):
 
 
 def retrieve_countries():
-    ROOT_DIR = os.path.dirname(os.path.abspath(os.curdir))
-    cities, codes = parse_csv_file(ROOT_DIR + "/progetto-SDCC/data/cities.csv")
+    cities, codes = parse_csv_file("app/data/cities.csv")
     codes_unique = list(set(codes))
     return codes_unique
 
 
 def get_all_cities():
-    if os.path.split(os.getcwd())[1] != 'progetto-SDCC':
-        os.chdir(os.getcwd()+"/../../../")
-    root_dir = os.getcwd()
-
-    cities, codes = parse_csv_file(root_dir + "/data/cities.csv")
+    cities, codes = parse_csv_file("app/data/cities.csv")
     return cities
 
 # This returns a tuple [city, country, lat, lon, data]
