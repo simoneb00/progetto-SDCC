@@ -1,0 +1,8 @@
+FROM python:3.8
+
+ADD data/routing.json .
+ADD src/python/service_registry/service_registry.py .
+
+RUN pip install flask
+
+ENTRYPOINT ["python3", "service_registry.py"]
