@@ -13,14 +13,12 @@ RUn apt install -y python3-pip
 RUN apt-get install -y systemd systemd-sysv dbus dbus-user-session
 RUN apt-get update
 
-RUN systemctl start docker
-RUN docker run hello-world
 
 # Make all directories to replicate the project on container
 RUN mkdir app/
 RUN mkdir app/python/
 RUN mkdir app/python/container/
-RUN mkdir app/python/local/
+RUN mkdir app/python/local/ 
 RUN mkdir app/python/local/controller/
 RUN mkdir app/python/local/controller/utils/
 RUN mkdir app/python/local/model/

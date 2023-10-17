@@ -11,7 +11,7 @@ def launch_container(country, country_number):
 
 def shutdown_container(container):
     try:
-        subprocess.call(["bash", "app/bash/progetto-SDCC/shutdown.sh", container.id])
+        subprocess.call(["bash", "app/bash/shutdown.sh", container.id])
 
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
