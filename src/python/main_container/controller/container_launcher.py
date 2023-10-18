@@ -16,8 +16,7 @@ def shutdown_container(container):
     except subprocess.CalledProcessError as e:
         print("Error in calling the containers' creation script")
         
-        
-        
+
 def launch_main_container():
     try:
         subprocess.call(["bash", "app/bash/create_main_container.sh"])

@@ -1,18 +1,12 @@
+"""
+The following file contains the AWS Lambda functions
+"""
+
 import json
 import boto3
 import botocore
 import csv
 from datetime import datetime
-
-
-def create_csv(client, file_name, bucket_name):
-    # check if file already exists
-    try:
-        response = client.get_object(Bucket=bucket_name, Key=file_name)
-        return response['Body'].readlines()
-    except botocore.exceptions.ClientError as e:
-        # the file does not exist, return None
-        return
 
 
 # prev_data format: [header, b'Rome,it,28,28,23,32,50,50,2023-09-28\r\n', ...]
@@ -34,52 +28,6 @@ def format(prev_data):
     print(ret_list)
     print('*****************************')
     return ret_list
-
-
-def update_csv(prev_data, new_data, file_name, client, bucket_name):
-    header = ['Name', 'Country', 'Temperature', 'Feels Like', 'Min Temperature', 'Max Temperature', 'Pressure',
-              'Humidity', 'Date']
-
-    if prev_data == None:
-        with open(f"/tmp/{file_name}", 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(header)
-            writer.writerow(new_data)
-
-    else:
-
-        # prev_data != None, so it means the csv file already existed, so we need to extract the previous data
-
-        data = format(prev_data)
-        with open(f'/tmp/{file_name}', 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(header)
-            writer.writerows(data)
-            writer.writerow(new_data)
-
-    client.upload_file(f'/tmp/{file_name}', bucket_name, file_name)
-
-
-def s3_persistence(data):
-    s3_client = boto3.client('s3')
-    s3 = boto3.resource('s3')
-
-    bucket_name = "bucket-sdcc-" + data.get('country')
-
-    s3_client.create_bucket(Bucket=bucket_name)
-    response = create_csv(s3_client, data.get('country') + ".csv", bucket_name)
-    update_csv(response, [data.get('name'),
-                          data.get('country'),
-                          data.get('temp'),
-                          data.get('feels_like'),
-                          data.get('temp_min'),
-                          data.get('temp_max'),
-                          data.get('pressure'),
-                          data.get('humidity'),
-                          data.get('date_time')],
-               data.get('country') + '.csv',
-               s3_client,
-               bucket_name)
 
 
 def create_dynamodb_table(dynamodb_client, data):
@@ -110,28 +58,21 @@ def create_dynamodb_table(dynamodb_client, data):
                     'KeyType': 'RANGE'
                 }
             ],
-            ProvisionedThroughput={
-                'ReadCapacityUnits': 5,
-                'WriteCapacityUnits': 5,
-            },
+            BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
-            {
-                'IndexName': 'DayIndex',
-                'KeySchema': [
-                    {
-                        'AttributeName': 'Day',
-                        'KeyType': 'HASH'
-                    },
-                ],
-                'Projection': {
-                    'ProjectionType': 'ALL'
-                },
-                'ProvisionedThroughput': {
-                    'ReadCapacityUnits': 5,
-                    'WriteCapacityUnits': 5
+                {
+                    'IndexName': 'DayIndex',
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'Day',
+                            'KeyType': 'HASH'
+                        },
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'ALL'
+                    }
                 }
-            },
-        ]
+            ]
         )
         print(response)
     except dynamodb_client.exceptions.ResourceInUseException as e:
@@ -141,11 +82,9 @@ def create_dynamodb_table(dynamodb_client, data):
 
 
 def put_data(dynamodb, data):
-
-    string_date = data.get('date_time')     # iso formatted date
+    string_date = data.get('date_time')  # iso formatted date
     date_string = string_date[:10]
     time_string = string_date[11:]
-
 
     dynamodb.put_item(
         Item={
@@ -196,12 +135,12 @@ def dynamodb_persistence(data):
 
     put_data(dynamodb_client, data)
 
+
 def lambda_handler(event, context):
     data = json.loads(event['body'])
 
     print('received data for country ' + data.get('country').upper())
 
-    #s3_persistence(data)
     dynamodb_persistence(data)
 
     return {

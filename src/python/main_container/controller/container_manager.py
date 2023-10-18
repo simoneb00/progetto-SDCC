@@ -22,12 +22,26 @@ def send_packet_to_container(packet):
     with open(root_dir + "app/data/routing.json", 'r') as file:
         data = json.load(file)
 
-    port_number = data[f"{dest_country}"]
+    """
+    params = {'country' : dest_country}
+    response = requests.get('http://localhost:9000/service-registry', params=params)
+    if response.status_code != 200:
+        raise Exception('An error occurred in calling the service registry.')
+
+    return_data = json.loads(response.text)
+    port_number = return_data.get('port_number')
+"""
+
+    port_number = data[f'{dest_country}']
+
+    print(f'Invoking destination container on port number {port_number}')
 
     url = f"http://localhost:{port_number}/{dest_country}"
 
     with open(root_dir + "app/data/data.json", 'w') as file:
         json.dump(packet.data, file)
+
+    print('Preparing data')
 
     with open(root_dir + "app/data/data.json", 'r') as file:
         files = {'file': file}
@@ -35,11 +49,16 @@ def send_packet_to_container(packet):
         time_count = 0
         server_running = False
 
+        print('Starting to send data')
+
         while (time_count < 30) and (not server_running):  # Needed to wait flask app to be running
             try:
                 time.sleep(1)
                 time_count = time_count + 1
-                requests.post(url, files=files, headers=headers)
+                response = requests.post(url, files=files, headers=headers)
+                if response.status_code == 200:
+                    print('Request correctly received and processed')
+
                 server_running = True
             except Exception as e:
                 server_running = False
@@ -88,11 +107,8 @@ def thread_daemon_data_generator(all_containers,lock):
             else:
                 with lock:
                     all_containers["container_" + str.lower(city.country[1:])].reset()                
-                
-        
+
             send_packet_to_container(city)
-
-
 
         print("Thread for data generation: sleeping for 60 seconds")
         time.sleep(60)
