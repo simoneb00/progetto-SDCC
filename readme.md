@@ -1,10 +1,5 @@
-# TODO
-* Aggiungere randomicità alle città (Done)
-* Implementare il meccanismo di cold start:
-  * Container intermedio sempre attivo che mantiene "tabella" dei container attivi, si occupa del routing e, se un container che deve ricevere dati è inattivo, il dispatcher attiva il container e, nel frattempo, soddisfa la richiesta.
-* Aggiungere meccanismo di spegnimento dei container
-  * Se un container non riceve dati per due round consecutivi, viene spento (e.g. mantiene un timer di 2 minuti, al termine del quale, se non viene riavviato, si spegne. Il timer viene riavviato alla ricezione di nuovi dati)
-* Invio dati al cloud
-* Realizzazione funzioni in-cloud (serverless)
-  * Salvataggio su storage (S3)
-  * Altre cose da vedere (CloudWatch)
+# Simulation of a distributed sensor network in the edge-cloud continuum
+This simple application simulates a distributed sensor network. It contains the following components:
+* Sensors: source of weather data (simulated via api from OpenWeatherMap).
+* Edge devices: Docker containers that perform data conversions and send data to the cloud.
+* Cloud: AWS services, i.e. Lambda functions that collect data from API Gateways and save it into DynamoDB tables. Once a day, average statistics are computed for the previous day and saved on a S3 bucket. 
