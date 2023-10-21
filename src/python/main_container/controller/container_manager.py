@@ -14,7 +14,7 @@ from flask import Flask, request
 
 from . import container_launcher
 from model import container
-from model import city
+from model.city import City
 
 lock = threading.Lock()
 all_containers = {}  # Dict of containers running to manage round exits {container_it:container}
@@ -156,7 +156,9 @@ def receive_data():
             all_containers["container_" + str.lower(city.country[1:])].reset()
 
     print('[Main Container] Sending data to the destination container')
-    # send_packet_to_container(city)
+    send_packet_to_container(city)
+
+    return 'Data correctly received', 200
 
 
 def start_flask_server():
@@ -217,10 +219,10 @@ def start():
 
     # Avvia il thread
     # data_thread.start()
-    # main_thread.start()
+    main_thread.start()
 
     # Attendere che il data_thread abbia terminato l'esecuzione 
-    # main_thread.join()
+    main_thread.join()
     # data_thread.join()
 
     print("Il thread principale ha terminato.")
