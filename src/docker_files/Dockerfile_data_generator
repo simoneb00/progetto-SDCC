@@ -1,0 +1,11 @@
+FROM python:3.8
+
+ADD src/python/main_container/model/city.py .
+ADD src/python/data_retrieving_container/data_retriever.py .
+ADD src/python/data_retrieving_container/random_subset_generator.py .
+ADD data/cities.csv .
+ADD data/countries.csv .
+
+RUN pip install requests
+
+ENTRYPOINT ["python3", "data_retriever.py"]

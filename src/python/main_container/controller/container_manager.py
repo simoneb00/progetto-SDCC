@@ -10,9 +10,14 @@ import os
 import requests
 import threading
 
+from flask import Flask, request
+
 from . import container_launcher
-from .utils import data_retriever
 from model import container
+from model import city
+
+lock = threading.Lock()
+all_containers = {}  # Dict of containers running to manage round exits {container_it:container}
 
 def send_packet_to_container(packet):
     root_dir = os.path.dirname(os.path.abspath(os.curdir))
@@ -117,6 +122,48 @@ def thread_daemon_data_generator(all_containers,lock):
         time.sleep(60)
 
 
+app = Flask(__name__)
+
+
+@app.route('/send-data', methods=['POST'])
+def receive_data():
+
+    received_data = request.get_json()
+
+    name = received_data['name']
+    country = received_data['country']
+    lat = received_data['lat']
+    lon = received_data['lon']
+    country_number = received_data['country_number']
+    data = received_data['data']
+
+    city = City(name, country, lat, lon, country_number)
+    city.set_data(data)
+
+    print(f'[Main Container] Received data for the city {city.name}')
+
+    # Go into critical section to check container status
+    with lock:
+        is_running = check_new_containers(city, all_containers)
+
+    if not is_running:
+        container_launcher.launch_container(str.lower(city.country[1:]), city.country_number)
+        with lock:
+            all_containers["container_" + str.lower(city.country[1:])] = container.Container(
+                "container_" + str.lower(city.country[1:]))
+    else:
+        with lock:
+            all_containers["container_" + str.lower(city.country[1:])].reset()
+
+    print('[Main Container] Sending data to the destination container')
+    # send_packet_to_container(city)
+
+
+def start_flask_server():
+    print('Data getter: listening on port 9001...')
+    app.run(host='0.0.0.0', port=9001)
+
+
 def thread_daemon_container_manager(all_containers,lock):
     keep_running = True
     round_index = 0
@@ -152,30 +199,28 @@ def thread_daemon_container_manager(all_containers,lock):
         time.sleep(60)
 
 
-
 def launch_main_container():
     container_launcher.launch_main_container()
     
 
-
 # The manager retrieves data every 60 seconds, and sends packets to containers
 def start():
-    all_containers = {}  # Dict of containers running to manage round exits {container_it:container} sahred nei due thread
-    
+
     # Generate exclusive lock to maintain coherent container time lived
-    lock = threading.Lock()
+    # lock = threading.Lock()
     
     # Crea il thread principale per la gestione dei container
     main_thread = threading.Thread(target=thread_daemon_container_manager, args=(all_containers,lock))
     # Crea il thread secondario per la generazione dei dati
-    data_thread = threading.Thread(target=thread_daemon_data_generator, args=(all_containers,lock))
+    # data_thread = threading.Thread(target=thread_daemon_data_generator, args=(all_containers,lock))
+    start_flask_server()
 
     # Avvia il thread
-    data_thread.start()
-    main_thread.start()
+    # data_thread.start()
+    # main_thread.start()
 
     # Attendere che il data_thread abbia terminato l'esecuzione 
-    main_thread.join()
-    data_thread.join()
+    # main_thread.join()
+    # data_thread.join()
 
     print("Il thread principale ha terminato.")

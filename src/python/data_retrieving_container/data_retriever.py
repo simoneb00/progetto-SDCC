@@ -3,12 +3,13 @@ this file retrieves weather conditions from the website openweathermap.org
 the cities considered are specified in the file cities.csv.
 """
 import csv
+import time
 
 import requests
-import os
+import json
 
-from . import random_subset_generator
-from model import city
+import random_subset_generator
+import city
 
 
 def parse_csv_file(file_path):
@@ -74,9 +75,8 @@ def retrieve_coordinates(city, country, api_key):
 def retrieve_cities_and_codes(api_key):
     cities_array = []
 
-    cities, codes = parse_csv_file("app/data/cities.csv")
-    countries = parse_csv_file_counties("app/data/countries.csv")
-
+    cities, codes = parse_csv_file("cities.csv")
+    countries = parse_csv_file_counties("countries.csv")
 
     subset = random_subset_generator.generate()  # Number from 1 to 55
 
@@ -107,22 +107,44 @@ def retrieve_weather_data(lat, lon, api_key):
 
 
 def retrieve_countries():
-    cities, codes = parse_csv_file("app/data/cities.csv")
+    cities, codes = parse_csv_file("cities.csv")
     codes_unique = list(set(codes))
     return codes_unique
 
 
 def get_all_cities():
-    cities, codes = parse_csv_file("app/data/cities.csv")
+    cities, codes = parse_csv_file("cities.csv")
     return cities
+
 
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
-    cities = retrieve_cities_and_codes(api_key)
 
-    for city in cities:
-        data = retrieve_weather_data(city.lat, city.lon, api_key)
-        city.set_data(data)
+    while True:
+        cities = retrieve_cities_and_codes(api_key)
 
-    return cities
+        for city in cities:
+            data = retrieve_weather_data(city.lat, city.lon, api_key)
+            city.set_data(data)
+
+            send_data = {
+                'name': city.name,
+                'country': city.country,
+                'lat': city.lat,
+                'lon': city.lon,
+                'country_number': city.country_number,
+                'data': city.data
+            }
+
+            # make a post request to pass this city's data to the main container
+            endpoint = 'http://main_container:9001/send-data'
+            response = requests.post(url=endpoint, json=send_data)
+            if response.status_code != 200:
+                print(f'Something went wrong - response status code {response.status_code}')
+
+        time.sleep(60)
+
+
+if __name__ == '__main__':
+    retrieve()
