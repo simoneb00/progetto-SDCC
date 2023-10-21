@@ -165,20 +165,30 @@ def lambda_handler(event, context):
     if is_date_present:
         # the table already contains data with this date,
         # so the statistics for the previous day have already been computed
-        print('No action performed')
         return {
             'statusCode': 200,
             'body': json.dumps('No action performed.')
         }
     else:
         # this is the first tuple of the day, so we must compute statistics for the previous day
+        # first, check if data from the previous day is present
+
         date = datetime.strptime(record_date, '%Y-%m-%d')
         prev_day = date - timedelta(days=1)
         prev_day = prev_day.isoformat()[:10]
+
+        is_date_present = query(dynamodb_client, prev_day, table_name)
+        if not is_date_present:
+            print('No data found for yesterday')
+            return {
+                'statusCode': 200,
+                'body': json.dumps('No action performed, as no data is present for yesterday.')
+            }
+
         avg_statistics = compute_statistics(dynamodb_client, table_name, prev_day)
         create_and_save_file(avg_statistics, country, prev_day)
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
+        'body': json.dumps("Average statistics successfully computed and saved in the country's bucket.")
     }

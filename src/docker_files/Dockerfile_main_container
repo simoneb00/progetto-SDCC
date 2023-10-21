@@ -10,8 +10,8 @@ RUN apt update
 RUN apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 RUn apt install -y python3-pip
 
-RUN apt-get install -y systemd systemd-sysv dbus dbus-user-session
-RUN apt-get update
+# RUN apt-get install -y systemd systemd-sysv dbus dbus-user-session
+# RUN apt-get update
 
 
 # Make all directories to replicate the project on container

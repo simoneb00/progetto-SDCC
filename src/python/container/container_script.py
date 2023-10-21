@@ -87,7 +87,7 @@ def upload():
         print(f'{code}: {message}')
 
         print('Sending queries to cloud')
-        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-06', 0, 0)
+        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 0, 0)
         if query_code != 200:
             print(f'{query_code} - {query_result}')
         else:
@@ -95,7 +95,7 @@ def upload():
             # print avg statistics
             print(stats)
 
-        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-06', 1, 0)
+        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 1, 0)
         if query_code != 200:
             print(f'{query_code} - {query_result}')
         else:
@@ -103,13 +103,14 @@ def upload():
             # print avg statistics
             print(stats)
 
-        query_code, query_result = cloud_interface.query(None, packet.country, '2023-10-06', 0, 1)
+        query_code, query_result = cloud_interface.query(None, packet.country, '2023-10-21', 0, 1)
         if query_code != 200:
             print(f'{query_code} - {query_result}')
         else:
             stats = json.loads(query_result)
             # print avg statistics
             print(stats)
+
 
         return message, code
 

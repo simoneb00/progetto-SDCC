@@ -22,21 +22,23 @@ def send_packet_to_container(packet):
     with open(root_dir + "app/data/routing.json", 'r') as file:
         data = json.load(file)
 
-    """
+
     params = {'country' : dest_country}
-    response = requests.get('http://localhost:9000/service-registry', params=params)
+    response = requests.get('http://service_registry_container:9000/service-registry', params=params)
     if response.status_code != 200:
         raise Exception('An error occurred in calling the service registry.')
 
     return_data = json.loads(response.text)
     port_number = return_data.get('port_number')
-"""
 
-    port_number = data[f'{dest_country}']
+
+    # port_number = data[f'{dest_country}']
 
     print(f'Invoking destination container on port number {port_number}')
 
-    url = f"http://localhost:{port_number}/{dest_country}"
+    dest_container_name = f'container_{dest_country}'
+
+    url = f"http://{dest_container_name}:{port_number}/{dest_country}" # todo
 
     with open(root_dir + "app/data/data.json", 'w') as file:
         json.dump(packet.data, file)
@@ -61,6 +63,7 @@ def send_packet_to_container(packet):
 
                 server_running = True
             except Exception as e:
+                print(e)
                 server_running = False
 
     if os.path.exists(root_dir + "app/data/data.json"):

@@ -31,9 +31,16 @@ def send_packet(packet):
     r = requests.post(url=endpoint, data=json_data, headers=headers)
     return r.status_code, r.text
 
-def query(city, country):
+
+def query(city, country, date, full_data, only_national_average):
     endpoint = 'https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData'
-    data = {'city': city, 'country': country}
+    data = {
+        'city': city,
+        'country': country,
+        'date': date,
+        'full_data': full_data,
+        'only_national_average': only_national_average
+            }
     headers = {'Content-Type': 'application/json'}
     json_data = json.dumps(data)
     r = requests.post(url=endpoint, data=json_data, headers=headers)
