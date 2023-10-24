@@ -50,9 +50,9 @@ ADD src/python/container/container_script.py app/python/container/container_scri
 ADD src/python/container/packet.py app/python/container/packet.py
 ADD src/python/main_container/entry_point.py app/python/local/entry_point.py
 ADD src/python/main_container/controller/container_launcher.py app/python/local/controller/container_launcher.py
+ADD src/python/main_container/controller/server.py app/python/local/controller/server.py
 ADD src/python/main_container/controller/container_manager.py app/python/local/controller/container_manager.py
-# ADD src/python/main_container/controller/utils/data_retriever.py app/python/local/controller/utils/data_retriever.py
-# ADD src/python/main_container/controller/utils/random_subset_generator.py app/python/local/controller/utils/random_subset_generator.py
+ADD src/python/main_container/controller/utils/checker.py app/python/local/controller/utils/checker.py
 ADD src/python/main_container/model/city.py app/python/local/model/city.py
 ADD src/python/main_container/model/container.py app/python/local/model/container.py
 
@@ -61,6 +61,7 @@ RUN pip install bash
 RUN pip install docker
 RUN pip install requests
 RUN pip install flask
+RUN pip install thread6
 
 # Launch main application in container
 ENTRYPOINT ["python3", "app/python/local/entry_point.py"]
