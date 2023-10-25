@@ -10,7 +10,7 @@ import threading
 
 from . import container_launcher
 from . import server
-from . import utils
+from .utils import checker
 
 # Generate exclusive lock to maintain coherent container time lived
 lock = threading.Lock()
@@ -27,7 +27,7 @@ def check_new_containers(city, containers):
 
 def uncheck_all(containers):
     for container in containers:
-        city = utils.checker.parse_id(container.id)
+        city = checker.parse_id(container)
         
         print(city.name + " " + city.country)
             
@@ -45,7 +45,7 @@ def uncheck_all(containers):
             with lock:
                 all_containers["container_" + str.lower(city.country[1:])].reset()                
 
-        utils.checker.send_packet_to_container(city)
+        checker.send_packet_to_container(city)
 
     print("[INFO] Thread for data generation: sleeping for 60 seconds")
     time.sleep(60)
@@ -101,15 +101,15 @@ def start():
     print("[INFO] Lock successfully created")
     
     # Crea il thread principale per la gestione dei container
-    main_thread = threading.Thread(target=thread_daemon_container_manager, args = (all_containers, lock))
+    #main_thread = threading.Thread(target=thread_daemon_container_manager, args = (all_containers, lock))
     flask_server_thread = threading.Thread(target= server.start_flask_server)
 
     # Avvia il thread
-    main_thread.start()
+    #main_thread.start()
     flask_server_thread.start()
 
     # Attendere che il data_thread abbia terminato l'esecuzione 
-    main_thread.join()
+    #main_thread.join()
     flask_server_thread.join()
 
     print("[INFO] Il thread principale ha terminato.")

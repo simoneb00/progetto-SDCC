@@ -120,6 +120,7 @@ def get_all_cities():
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
+    round_index = 0
 
     while True:
         cities = retrieve_cities_and_codes(api_key)
@@ -142,6 +143,11 @@ def retrieve():
             response = requests.post(url=endpoint, json=send_data)
             if response.status_code != 200:
                 print(f'Something went wrong - response status code {response.status_code}')
+
+        # end of round, send message and sleep for 60 seconds
+        endpoint = f'http://main_container:9001/end-round/{round_index}'
+        round_index = round_index + 1
+        requests.get(url=endpoint)
 
         time.sleep(60)
 
