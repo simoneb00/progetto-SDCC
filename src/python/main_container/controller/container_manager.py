@@ -1,22 +1,13 @@
-"""
-This file contains the logic to manage containers.
-For every country, a container must be created (named "container-XX", where XX is the country code).
-Then, every container must receive data relative to cities in that country.
-The countries are retrieved from the file cities.csv.
-"""
-import time
 import threading
-
-
 from . import container_launcher
 from . import server
-from .utils import checker
 
 # Generate exclusive lock to maintain coherent container time lived
 lock = threading.Lock()
 all_containers = {}  # Dict of containers running to manage round exits {container_it:container}
 
 
+"""
 def check_new_containers(city, containers):
     for container in containers.values():
         if container.id == "container_" + str.lower(city.country[1:]):
@@ -88,28 +79,24 @@ def thread_daemon_container_manager(all_containers, lock):
 
         print("[INFO] Thread to manage container: sleeping for 60 seconds")
         time.sleep(60)
-
+"""
 
 def launch_main_container():
     container_launcher.launch_main_container()
-    
+
 
 # The manager retrieves data every 60 seconds, and sends packets to containers
 def start():
 
-
     print("[INFO] Lock successfully created")
     
     # Crea il thread principale per la gestione dei container
-    #main_thread = threading.Thread(target=thread_daemon_container_manager, args = (all_containers, lock))
     flask_server_thread = threading.Thread(target= server.start_flask_server)
 
-    # Avvia il thread
-    #main_thread.start()
+    # Start thread
     flask_server_thread.start()
 
     # Attendere che il data_thread abbia terminato l'esecuzione 
-    #main_thread.join()
     flask_server_thread.join()
 
     print("[INFO] Il thread principale ha terminato.")

@@ -11,64 +11,60 @@ from .utils import checker
 
 app = Flask(__name__)
 
-all_containers = {}  # Dict of containers running to manage round exits {container_it:container}
 
-
-def check_new_containers(city, containers):
+def check_new_containers(country, containers):
     for container in containers.values():
-        if container.id == "container_" + str.lower(city.country[1:]):
+        if container.id == "container_" + str.lower(country.country[1:]):
             print(container.id + " already running!")
             container.reset_time()
             return True
     return False
 
 
+"""
 def uncheck_all(containers):
     for container in containers:
-        city = checker.parse_id(container)
-
-        print(city.name + " " + city.country)
-
-        is_running = check_new_containers(city, all_containers)
+        country = checker.parse_id(container)
+        is_running = check_new_containers(country, container_manager.all_containers)
 
         if not is_running:
-            container_launcher.launch_container(str.lower(city.country[1:]), city.country_number)
-            all_containers["container_" + str.lower(city.country[1:])] = container.Container(
+            container_launcher.launch_container(country, city.country_number)
+            container_manager.all_containers[f"container_{country}"] = container.Container(
                     "container_" + str.lower(city.country[1:]))
         else:
-            all_containers["container_" + str.lower(city.country[1:])].reset()
+            container_manager.all_containers["container_" + str.lower(city.country[1:])].reset()
 
         checker.send_packet_to_container(city)
-
-    print("[INFO] Thread for data generation: sleeping for 60 seconds")
-    time.sleep(60)
+"""
 
 @app.route('/end-round/<int:round_index>', methods=['GET'])
 def receive_msg(round_index):
 
-    print('[INFO] Container manager listening on port 9002...')
     print("Thread to manage container: starting to check...")
     print(" ***************** ROUND INDEX IS ************************")
     print(" *                        " + str(round_index) + "                              *")
     print(" *********************************************************")
 
     # Set all containers to false (unchecked)
-    uncheck_all(all_containers)
+    #uncheck_all(container_manager.all_containers)
 
     print("Country    Keep_Alive    Checked")
-    for cnt in all_containers.copy().values():
-        all_containers[cnt.id].pass_time()
+    for cnt in container_manager.all_containers.copy().values():
+        container_manager.all_containers[cnt.id].pass_time()
         print(cnt.id + "    " + str(cnt.alive_round) + "    " + str(cnt.checked))
 
-    for cnt in all_containers.copy().values():
-        if not all_containers[cnt.id].checked:
-            all_containers[cnt.id].checked = True
-            if all_containers[cnt.id].alive_round > 1:
+    """
+    for cnt in container_manager.all_containers.copy().values():
+        if not container_manager.all_containers[cnt.id].checked:
+            container_manager.all_containers[cnt.id].checked = True
+            if container_manager.all_containers[cnt.id].alive_round > 1:
                 container_launcher.shutdown_container(cnt)
-                all_containers.pop(cnt.id)
-
-    print("[INFO] Thread to manage container: sleeping for 60 seconds")
-    time.sleep(60)
+                container_manager.all_containers.pop(cnt.id)
+                """
+    for cnt in container_manager.all_containers.copy().values():
+        if cnt.alive_round >= 3:
+            container_launcher.shutdown_container(cnt)
+            container_manager.all_containers.pop(cnt.id)
 
     return 'End of Round message correctly received', 200
 

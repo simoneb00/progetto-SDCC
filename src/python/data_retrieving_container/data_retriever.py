@@ -120,7 +120,7 @@ def get_all_cities():
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
-    round_index = 0
+    round_index = 1
 
     while True:
         cities = retrieve_cities_and_codes(api_key)
@@ -138,6 +138,8 @@ def retrieve():
                 'data': city.data
             }
 
+            print(f'Sending data for city {city.name}')
+
             # make a post request to pass this city's data to the main container
             endpoint = 'http://main_container:9001/send-data'
             response = requests.post(url=endpoint, json=send_data)
@@ -148,6 +150,8 @@ def retrieve():
         endpoint = f'http://main_container:9001/end-round/{round_index}'
         round_index = round_index + 1
         requests.get(url=endpoint)
+
+        print('End of round, sent message')
 
         time.sleep(60)
 

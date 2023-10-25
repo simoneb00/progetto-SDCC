@@ -67,9 +67,9 @@ def send_packet_to_container(packet):
         os.remove(root_dir + "app/data/data.json")
 
 def parse_id(container_id):
-    city = ""
+    country = ""
     
     print(container_id)
-    city = container_id.split("_")[1]    
+    country = container_id.split("_")[1]
     
-    return city
+    return country
