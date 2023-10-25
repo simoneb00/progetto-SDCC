@@ -143,7 +143,11 @@ def retrieve():
             if response.status_code != 200:
                 print(f'Something went wrong - response status code {response.status_code}')
 
+            print(f'Sent data relative to city {city.name}')
+
+        print('End of round: sleeping for 60 seconds')
         time.sleep(60)
+
 
 
 if __name__ == '__main__':

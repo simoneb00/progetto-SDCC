@@ -215,11 +215,13 @@ def start():
     main_thread = threading.Thread(target=thread_daemon_container_manager, args=(all_containers,lock))
     # Crea il thread secondario per la generazione dei dati
     # data_thread = threading.Thread(target=thread_daemon_data_generator, args=(all_containers,lock))
+
+    main_thread.start()
+
     start_flask_server()
 
     # Avvia il thread
     # data_thread.start()
-    main_thread.start()
 
     # Attendere che il data_thread abbia terminato l'esecuzione 
     main_thread.join()
