@@ -21,7 +21,6 @@ def send_packet_to_container(packet):
     with open(root_dir + "app/data/routing.json", 'r') as file:
         data = json.load(file)
 
-
     params = {'country' : dest_country}
     response = requests.get('http://service_registry_container:9000/service-registry', params=params)
     if response.status_code != 200:
@@ -29,7 +28,6 @@ def send_packet_to_container(packet):
 
     return_data = json.loads(response.text)
     port_number = return_data.get('port_number')
-
 
     print(f'Invoking destination container on port number {port_number}')
 

@@ -37,8 +37,12 @@ def uncheck_all(containers):
         checker.send_packet_to_container(city)
 """
 
-@app.route('/end-round/<int:round_index>', methods=['GET'])
-def receive_msg(round_index):
+@app.route('/end-round/', methods=['POST'])
+def receive_msg():
+
+    json_data = request.get_json()
+    round_index = json_data.get('round_index')
+    active_countries = json_data.get('list')
 
     print("Thread to manage container: starting to check...")
     print(" ***************** ROUND INDEX IS ************************")
@@ -46,7 +50,11 @@ def receive_msg(round_index):
     print(" *********************************************************")
 
     # Set all containers to false (unchecked)
-    #uncheck_all(container_manager.all_containers)
+    # uncheck_all(container_manager.all_containers)
+
+    for cnt in container_manager.all_containers.copy().values():
+        if cnt.id[10:] in active_countries:
+            container_manager.all_containers[cnt.id].reset_time()
 
     print("Country    Keep_Alive    Checked")
     for cnt in container_manager.all_containers.copy().values():

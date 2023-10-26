@@ -3,6 +3,7 @@ this file retrieves weather conditions from the website openweathermap.org
 the cities considered are specified in the file cities.csv.
 """
 import csv
+import socket
 import time
 
 import requests
@@ -117,12 +118,60 @@ def get_all_cities():
     return cities
 
 
+def send_data_to_dest_container(city):
+    dest_country = city.country.lower()[1:]
+    container_name = f'container_{dest_country}'
+
+    print(f'Trying to send data to {container_name}')
+
+    # try to contact destination container
+    params = {'country': dest_country}
+    response = requests.get('http://service_registry_container:9000/service-registry', params=params)
+    if response.status_code != 200:
+        raise Exception('An error occurred in calling the service registry.')
+
+    return_data = json.loads(response.text)
+    port_number = return_data.get('port_number')
+
+    endpoint = f'http://{container_name}:{port_number}/{dest_country}'
+
+    try:
+
+        with open("data.json", 'w') as file:
+            json.dump(city.data, file)
+
+        with open("data.json", 'r') as file:
+            files = {'file': file}
+            headers = requests.utils.default_headers()
+
+            response = requests.post(endpoint, files=files, headers=headers)
+            response.raise_for_status()
+            if response.status_code == 200:
+                print('Request correctly received and processed')
+
+        if response.status_code != 200:
+            print(f'Something went wrong - response status code {response.status_code}')
+
+    except requests.ConnectionError:
+        return False
+
+    print(f'Data successfully sent to {container_name}')
+    return True
+
+
+
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
     api_key = "9ef842fefcbe90d181f3982133dadd61"
     round_index = 1
+    active_countries = []
 
     while True:
+
+        # this list is needed to keep track of the countries' containers directly contacted by this container,
+        # in order to make the round handling in the main container possible.
+        active_countries = []
+
         cities = retrieve_cities_and_codes(api_key)
 
         for city in cities:
@@ -139,17 +188,33 @@ def retrieve():
             }
 
             print(f'Sending data for city {city.name}')
+            dataSent = send_data_to_dest_container(city)
 
-            # make a post request to pass this city's data to the main container
-            endpoint = 'http://main_container:9001/send-data'
-            response = requests.post(url=endpoint, json=send_data)
-            if response.status_code != 200:
-                print(f'Something went wrong - response status code {response.status_code}')
+            if dataSent:
+                active_countries.append(city.country.lower()[1:])
+
+            if not dataSent:
+                print('Cannot connect to the destination container, redirecting the request to the main container')
+                # in this case, the destination container is not active, so redirect the request on the main container
+                endpoint = 'http://main_container:9001/send-data'
+                response = requests.post(url=endpoint, json=send_data)
+                if response.status_code != 200:
+                    print(f'Something went wrong - response status code {response.status_code}')
+
+            print('\n')
 
         # end of round, send message and sleep for 60 seconds
-        endpoint = f'http://main_container:9001/end-round/{round_index}'
+        # we need to send both the round_index and the list of active countries
+
+        endpoint = 'http://main_container:9001/end-round/'
         round_index = round_index + 1
-        requests.get(url=endpoint)
+
+        data = {
+            'round_index': round_index,
+            'list': active_countries
+        }
+
+        requests.post(url=endpoint, json=data)
 
         print('End of round, sent message')
 
