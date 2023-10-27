@@ -3,6 +3,7 @@ this file retrieves weather conditions from the website openweathermap.org
 the cities considered are specified in the file cities.csv.
 """
 import csv
+import datetime
 import socket
 import time
 
@@ -168,6 +169,9 @@ def retrieve():
 
     while True:
 
+        print(f"\n****************************************** ROUND {round_index} ******************************************")
+        print(f"Cannot connect to the destination container, redirecting the request to the main container")
+
         # this list is needed to keep track of the countries' containers directly contacted by this container,
         # in order to make the round handling in the main container possible.
         active_countries = []
@@ -177,6 +181,9 @@ def retrieve():
         for city in cities:
             data = retrieve_weather_data(city.lat, city.lon, api_key)
             city.set_data(data)
+
+            now = datetime.datetime.now()
+            print(f'Data generated at time {now}')
 
             send_data = {
                 'name': city.name,
@@ -216,9 +223,10 @@ def retrieve():
 
         requests.post(url=endpoint, json=data)
 
-        print('End of round, sent message')
+        print('End of round, sent message\n')
 
         time.sleep(60)
+
 
 
 if __name__ == '__main__':

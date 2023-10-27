@@ -80,11 +80,14 @@ def upload():
         file_contents = file.read()
         deserialized_data = json.loads(file_contents)
         packet = pack_city_data(deserialized_data)
-        # todo remove below
+
         print(f"{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}")
         print('Sending data to cloud')
         code, message = cloud_interface.send_packet(packet)
         print(f'{code}: {message}')
+
+        now = datetime.datetime.now()
+        print(f'Result got at time {now}')
 
         print('Sending queries to cloud')
         query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 0, 0)
@@ -111,6 +114,7 @@ def upload():
             # print avg statistics
             print(stats)
 
+        print('\n\n')
 
         return message, code
 

@@ -88,8 +88,6 @@ def launch_main_container():
 # The manager retrieves data every 60 seconds, and sends packets to containers
 def start():
 
-    print("[INFO] Lock successfully created")
-    
     # Crea il thread principale per la gestione dei container
     flask_server_thread = threading.Thread(target= server.start_flask_server)
 
@@ -99,4 +97,4 @@ def start():
     # Attendere che il data_thread abbia terminato l'esecuzione 
     flask_server_thread.join()
 
-    print("[INFO] Il thread principale ha terminato.")
+    print("[INFO] The main thread stopped.")
