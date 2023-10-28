@@ -4,6 +4,7 @@ the cities considered are specified in the file cities.csv.
 """
 import csv
 import datetime
+import os
 import socket
 import time
 
@@ -143,7 +144,7 @@ def send_data_to_dest_container(city):
 
         with open("data.json", 'r') as file:
             files = {'file': file}
-            headers = requests.utils.default_headers()
+            headers = {"X-Source-Container": 'data_generator_container'}
 
             response = requests.post(endpoint, files=files, headers=headers)
             response.raise_for_status()
@@ -184,6 +185,15 @@ def retrieve():
 
             now = datetime.datetime.now()
             print(f'Data generated at time {now}')
+
+            filename = f'/volume/statistics_{city.country.lower()[1:]}.csv'
+            file_exists = os.path.isfile(filename)
+
+            with open(filename, 'a') as f:
+                csv_writer = csv.writer(f)
+                if not file_exists:
+                    csv_writer.writerow(['city', 'time'])
+                csv_writer.writerow([city.name, now])
 
             send_data = {
                 'name': city.name,

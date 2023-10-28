@@ -8,7 +8,7 @@ It must perform the following operations:
 * Send data (relative to every city) to the cloud
 (This file should be loaded into every container)
 """
-
+import csv
 import datetime
 import sys
 import time
@@ -81,6 +81,9 @@ def upload():
         deserialized_data = json.loads(file_contents)
         packet = pack_city_data(deserialized_data)
 
+        source = request.headers.get('X-Source-Container')
+        print(f'Data received from {source}')
+
         print(f"{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}")
         print('Sending data to cloud')
         code, message = cloud_interface.send_packet(packet)
@@ -88,6 +91,18 @@ def upload():
 
         now = datetime.datetime.now()
         print(f'Result got at time {now}')
+
+        # save time for statistics
+        cold_start = source != 'data_generator_container'
+
+        filename = '/volume/statistics.csv'
+        file_exists = os.path.isfile(filename)
+
+        with open(filename, 'a') as f:
+            csv_writer = csv.writer(f)
+            if not file_exists:
+                csv_writer.writerow(['city', 'time', 'cold_start'])
+            csv_writer.writerow([packet.name, now, cold_start])
 
         print('Sending queries to cloud')
         query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 0, 0)

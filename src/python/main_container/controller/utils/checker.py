@@ -42,7 +42,7 @@ def send_packet_to_container(packet):
 
     with open(root_dir + "app/data/data.json", 'r') as file:
         files = {'file': file}
-        headers = requests.utils.default_headers()
+        headers = {"X-Source-Container": 'main_container'}
         time_count = 0
         server_running = False
 
