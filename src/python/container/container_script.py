@@ -74,23 +74,23 @@ def upload():
     if 'file' not in request.files:
         return "No files in the request", 400
 
-    file = request.files['file']
+    f = request.files['file']
 
-    if file:
-        file_contents = file.read()
+    if f:
+        file_contents = f.read()
         deserialized_data = json.loads(file_contents)
-        packet = pack_city_data(deserialized_data)
+        p = pack_city_data(deserialized_data)
 
         source = request.headers.get('X-Source-Container')
-        print(f'Data received from {source}')
+        print(f'[INFO] Data received from {source}')
 
-        print(f"{packet.name}, {packet.country}, {packet.temp}, {packet.feels_like}, {packet.temp_min}, {packet.temp_max}, {packet.humidity}, {packet.pressure}, {packet.date_time}")
-        print('Sending data to cloud')
-        code, message = cloud_interface.send_packet(packet)
-        print(f'{code}: {message}')
+        print(f"[INFO] Received data for city {p.name}")
+        print('[INFO] Sending data to cloud')
+        code, message = cloud_interface.send_packet(p, config)
+        print(f'[INFO] Results: {code}: {message}')
 
         now = datetime.datetime.now()
-        print(f'Result got at time {now}')
+        print(f'[INFO] Results got at time {now}')
 
         # save time for statistics
         cold_start = source != 'data_generator_container'
@@ -102,28 +102,30 @@ def upload():
             csv_writer = csv.writer(f)
             if not file_exists:
                 csv_writer.writerow(['city', 'time', 'cold_start'])
-            csv_writer.writerow([packet.name, now, cold_start])
+            csv_writer.writerow([p.name, now, cold_start])
 
-        print('Sending queries to cloud')
-        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 0, 0)
+        date = '2023-10-26'
+
+        print('[INFO] Sending queries to cloud')
+        query_code, query_result = cloud_interface.query(p.name, p.country, date, 0, 0, config)
         if query_code != 200:
-            print(f'{query_code} - {query_result}')
+            print(f'[INFO] Results: {query_code} - {query_result}')
         else:
             stats = json.loads(query_result)
             # print avg statistics
             print(stats)
 
-        query_code, query_result = cloud_interface.query(packet.name, packet.country, '2023-10-21', 1, 0)
+        query_code, query_result = cloud_interface.query(p.name, p.country, date, 1, 0, config)
         if query_code != 200:
-            print(f'{query_code} - {query_result}')
+            print(f'[INFO] Results: {query_code} - {query_result}')
         else:
             stats = json.loads(query_result)
             # print avg statistics
             print(stats)
 
-        query_code, query_result = cloud_interface.query(None, packet.country, '2023-10-21', 0, 1)
+        query_code, query_result = cloud_interface.query(None, p.country, date, 0, 1, config)
         if query_code != 200:
-            print(f'{query_code} - {query_result}')
+            print(f'[INFO] Results: {query_code} - {query_result}')
         else:
             stats = json.loads(query_result)
             # print avg statistics
@@ -134,16 +136,18 @@ def upload():
         return message, code
 
 
-@app.route('/')
-def hello():
-    return f'<h1>Hello from the container for country {container_country} </h2>'
-
-
 if __name__ == "__main__":
-    print(f"{container_name}, representing the country {container_country}")
+    print(f"[INFO] Hello from {container_name}, representing the country {container_country}")
 
-    with open("routing.json", 'r') as file:
-        data = json.load(file)
+    with open('config.json', 'r') as file:
+        config = json.load(file)
 
-    port_number = data[f"{container_country}"]
+    params = {'country': container_country}
+    response = requests.get(config.get('service_registry_endpoint'), params=params)
+    if response.status_code != 200:
+        raise Exception('An error occurred in calling the service registry.')
+
+    return_data = json.loads(response.text)
+    port_number = return_data.get('port_number')
+
     app.run(host='0.0.0.0', port=port_number)

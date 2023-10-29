@@ -20,24 +20,6 @@ def check_new_containers(country, containers):
     return False
 
 
-# todo is the following function useful?
-"""
-def uncheck_all(containers):
-    for container in containers:
-        country = checker.parse_id(container)
-        is_running = check_new_containers(country, container_manager.all_containers)
-
-        if not is_running:
-            container_launcher.launch_container(country, city.country_number)
-            container_manager.all_containers[f"container_{country}"] = container.Container(
-                    "container_" + str.lower(city.country[1:]))
-        else:
-            container_manager.all_containers["container_" + str.lower(city.country[1:])].reset()
-
-        checker.send_packet_to_container(city)
-"""
-
-
 @app.route('/end-round/', methods=['POST'])
 def receive_msg():
 
@@ -57,10 +39,10 @@ def receive_msg():
         if cnt.id[10:] in active_countries:
             container_manager.all_containers[cnt.id].reset_time()
 
-    print("Country    Keep_Alive    Checked")
+    print("Country       Age")
     for cnt in container_manager.all_containers.copy().values():
         container_manager.all_containers[cnt.id].pass_time()
-        print(cnt.id + "    " + str(cnt.alive_round) + "    " + str(cnt.checked))
+        print(cnt.id + "    " + str(cnt.alive_round))
 
     for cnt in container_manager.all_containers.copy().values():
         if cnt.alive_round >= 3:
@@ -87,18 +69,18 @@ def receive_data():
 
     print(f'[INFO] Main container received data for the city {city.name}')
 
-    # Go into critical section to check container status
+    # Go into critical section to check container status todo is the lock necessary?
     with container_manager.lock:
         is_running = utils.checker.check_new_containers(city, container_manager.all_containers)
 
     if not is_running:
         container_launcher.launch_container(str.lower(city.country[1:]), city.country_number)
         with container_manager.lock:
-            container_manager.all_containers["container_" + str.lower(city.country[1:])] = container.Container(
-                "container_" + str.lower(city.country[1:]))
+            container_manager.all_containers[f"container_{str.lower(city.country[1:])}"] = container.Container(
+                f"container_{str.lower(city.country[1:])}")
     else:
         with container_manager.lock:
-            container_manager.all_containers["container_" + str.lower(city.country[1:])].reset()
+            container_manager.all_containers[f"container_{str.lower(city.country[1:])}"].reset()
 
     print('[INFO] Sending data to the destination container')
     utils.checker.send_packet_to_container(city)

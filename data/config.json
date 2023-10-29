@@ -1,4 +1,9 @@
 {
     "api_key" : "9ef842fefcbe90d181f3982133dadd61",
-    "api_url" : "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=9ef842fefcbe90d181f3982133dadd61"
+    "api_url" : "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=9ef842fefcbe90d181f3982133dadd61",
+    "main_container_endpoint_send" : "http://main_container:9001/send-data",
+    "main_container_endpoint_end_round" : "http://main_container:9001/end-round/",
+    "service_registry_endpoint" : "http://service_registry_container:9000/service-registry",
+    "api_gateway_upload_data": "https://e1b792l8l1.execute-api.us-east-1.amazonaws.com/default/cloudWeatherDataCollector",
+    "api_gateway_query": "https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData"
 }
