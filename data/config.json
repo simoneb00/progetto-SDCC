@@ -5,5 +5,7 @@
     "main_container_endpoint_end_round" : "http://main_container:9001/end-round/",
     "service_registry_endpoint" : "http://service_registry_container:9000/service-registry",
     "api_gateway_upload_data": "https://e1b792l8l1.execute-api.us-east-1.amazonaws.com/default/cloudWeatherDataCollector",
-    "api_gateway_query": "https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData"
+    "api_gateway_query": "https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData",
+    "rounds": 3,
+    "cities_per_round": 10
 }

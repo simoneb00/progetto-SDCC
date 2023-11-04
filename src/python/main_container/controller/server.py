@@ -1,3 +1,4 @@
+import json
 import threading
 
 from flask import Flask, request
@@ -24,6 +25,10 @@ def check_new_containers(country, containers):
 
 @app.route('/end-round/', methods=['POST'])
 def receive_msg():
+    config_file_path = '/app/data/config.json'
+
+    with open(config_file_path, 'r') as file:
+        config = json.load(file)
 
     json_data = request.get_json()
     round_index = json_data.get('round_index')
@@ -44,7 +49,7 @@ def receive_msg():
         print(cnt.id + "    " + str(cnt.alive_round))
 
     for cnt in container_manager.all_containers.copy().values():
-        if cnt.alive_round >= 3:
+        if cnt.alive_round >= config.get('rounds'):
             container_launcher.shutdown_container(cnt)
             container_manager.all_containers.pop(cnt.id)
 

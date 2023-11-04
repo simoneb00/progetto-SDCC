@@ -234,10 +234,6 @@ def retrieve():
         requests.post(url=endpoint, json=data)
 
         print('[INFO] End of round, sent message\n')
-
-            print(f'Sent data relative to city {city.name}')
-
-        print('End of round: sleeping for 60 seconds')
         time.sleep(60)
 
 
