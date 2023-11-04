@@ -3,7 +3,11 @@ ADD app/python/container/container_script.py .
 ADD app/python/container/packet.py .
 ADD app/data/routing.json .
 ADD app/python/container/cloud_interface.py .
+ADD app/data/config.json .
+
+RUN mkdir "volume"
 RUN pip install flask
 RUN pip install bash
 RUN pip install docker
+
 ENTRYPOINT ["python3", "container_script.py"]

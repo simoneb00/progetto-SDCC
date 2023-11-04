@@ -21,19 +21,18 @@ def convert_to_dict(packet):
 
 
 # this function sends a json file to the API trigger for the AWS Lambda function
-def send_packet(packet):
-    endpoint = "https://e1b792l8l1.execute-api.us-east-1.amazonaws.com/default/cloudWeatherDataCollector"  # todo add conf file
-    dict = convert_to_dict(packet)
+def send_packet(packet, config):
+    endpoint = config.get('api_gateway_upload_data')
+    dictionary = convert_to_dict(packet)
 
     headers = {'Content-Type': 'application/json'}
-    json_data = json.dumps(dict)
-    print(json_data)
+    json_data = json.dumps(dictionary)
     r = requests.post(url=endpoint, data=json_data, headers=headers)
     return r.status_code, r.text
 
 
-def query(city, country, date, full_data, only_national_average):
-    endpoint = 'https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData'
+def query(city, country, date, full_data, only_national_average, config):
+    endpoint = config.get('api_gateway_query')
     data = {
         'city': city,
         'country': country,

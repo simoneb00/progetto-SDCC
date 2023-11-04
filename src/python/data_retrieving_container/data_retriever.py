@@ -3,6 +3,9 @@ this file retrieves weather conditions from the website openweathermap.org
 the cities considered are specified in the file cities.csv.
 """
 import csv
+import datetime
+import os
+import socket
 import time
 
 import requests
@@ -117,17 +120,82 @@ def get_all_cities():
     return cities
 
 
+def send_data_to_dest_container(city, config):
+    dest_country = city.country.lower()[1:]
+    container_name = f'container_{dest_country}'
+
+    print(f'[INFO] Sending data to {container_name}')
+
+    params = {'country': dest_country}
+    response = requests.get(config.get('service_registry_endpoint'), params=params)
+    if response.status_code != 200:
+        raise Exception('An error occurred in calling the service registry.')
+
+    return_data = json.loads(response.text)
+    port_number = return_data.get('port_number')
+
+    endpoint = f'http://{container_name}:{port_number}/{dest_country}'
+
+    try:
+        with open("data.json", 'w') as file:
+            json.dump(city.data, file)
+
+        with open("data.json", 'r') as file:
+            files = {'file': file}
+            headers = {"X-Source-Container": 'data_generator_container'}
+
+            response = requests.post(endpoint, files=files, headers=headers)
+            response.raise_for_status()
+            if response.status_code == 200:
+                print('Request correctly received and processed')
+
+        if response.status_code != 200:
+            print(f'Something went wrong - response status code {response.status_code}')
+
+    except requests.ConnectionError:
+        # In this case, the destination container is not active, so data must be sent to the main container
+        return False
+
+    print(f'[INFO] Data successfully sent to {container_name}')
+    return True
+
+
 # This returns a tuple [city, country, lat, lon, data]
 def retrieve():
-    api_key = "9ef842fefcbe90d181f3982133dadd61"
+    with open('config.json', 'r') as file:
+        config = json.load(file)
+
+    api_key = config.get('api_key')
+    round_index = 1
 
     while True:
+
+        print(f"\n***************************************** ROUND {round_index} *****************************************")
+
+        # the following list is needed to keep track of the those containers contacted by this container
+        # (so not from the main container), in order to make the round handling in the main container possible.
+        active_countries = []
+
         cities = retrieve_cities_and_codes(api_key)
 
         for city in cities:
             data = retrieve_weather_data(city.lat, city.lon, api_key)
             city.set_data(data)
 
+            now = datetime.datetime.now()
+            print(f'[INFO] Data generated at time {now}')
+
+            # Save generation time into a csv file
+            filename = f'/volume/statistics_{city.country.lower()[1:]}.csv'
+            file_exists = os.path.isfile(filename)
+
+            with open(filename, 'a') as f:
+                csv_writer = csv.writer(f)
+                if not file_exists:
+                    csv_writer.writerow(['city', 'time'])
+                csv_writer.writerow([city.name, now])
+
+            # Pack and send data
             send_data = {
                 'name': city.name,
                 'country': city.country,
@@ -137,11 +205,35 @@ def retrieve():
                 'data': city.data
             }
 
-            # make a post request to pass this city's data to the main container
-            endpoint = 'http://main_container:9001/send-data'
-            response = requests.post(url=endpoint, json=send_data)
-            if response.status_code != 200:
-                print(f'Something went wrong - response status code {response.status_code}')
+            data_sent = send_data_to_dest_container(city, config)
+
+            if data_sent:
+                active_countries.append(city.country.lower()[1:])
+
+            if not data_sent:
+                print('[INFO] Cannot connect to the destination container, redirecting the request to main container')
+                endpoint = config.get('main_container_endpoint_send')
+                response = requests.post(url=endpoint, json=send_data)
+                if response.status_code == 200:
+                    print('[INFO] Request successfully sent to main container')
+                else:
+                    print(f'Something went wrong - response status code {response.status_code}')
+
+            print('\n')
+
+        # end of round, send message and sleep for 60 seconds
+        # we need to send to main container both the round_index and the list of active countries
+        endpoint = config.get('main_container_endpoint_end_round')
+        round_index = round_index + 1
+
+        data = {
+            'round_index': round_index,
+            'list': active_countries
+        }
+
+        requests.post(url=endpoint, json=data)
+
+        print('[INFO] End of round, sent message\n')
 
             print(f'Sent data relative to city {city.name}')
 

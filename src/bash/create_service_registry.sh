@@ -2,6 +2,7 @@
 
 if [ "$(docker ps -aq -f name="service_registry")" ]; then
   echo "The service_registry container already exist, so its creation is skipped"
+  docker start $(docker inspect -f '{{.Id}}' "service_registry_container")
 else
   docker network create containers_network
   docker build -t "service_registry_image" -f src/docker_files/Dockerfile_service_registry .

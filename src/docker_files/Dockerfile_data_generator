@@ -5,7 +5,9 @@ ADD src/python/data_retrieving_container/data_retriever.py .
 ADD src/python/data_retrieving_container/random_subset_generator.py .
 ADD data/cities.csv .
 ADD data/countries.csv .
+ADD data/config.json .
 
+RUN mkdir "volume"
 RUN pip install requests
 
 ENTRYPOINT ["python3", "data_retriever.py"]
