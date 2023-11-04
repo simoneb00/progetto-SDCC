@@ -1,3 +1,5 @@
+import threading
+
 from flask import Flask, request
 
 from model import container
@@ -32,9 +34,6 @@ def receive_msg():
     print(" *                        " + str(round_index) + "                           *")
     print(" ******************************************************")
 
-    # Set all containers to false (unchecked) todo what does it mean?
-    # uncheck_all(container_manager.all_containers)
-
     for cnt in container_manager.all_containers.copy().values():
         if cnt.id[10:] in active_countries:
             container_manager.all_containers[cnt.id].reset_time()
@@ -52,11 +51,7 @@ def receive_msg():
     return 'End of Round message correctly received', 200
 
 
-@app.route('/send-data', methods=['POST'])
-def receive_data():
-
-    received_data = request.get_json()
-
+def thread_receive_data(received_data):
     name = received_data['name']
     country = received_data['country']
     lat = received_data['lat']
@@ -67,23 +62,29 @@ def receive_data():
     city = City(name, country, lat, lon, country_number)
     city.set_data(data)
 
-    print(f'[INFO] Main container received data for the city {city.name}')
+    print(f'[INFO] Thread received data for the city {city.name}')
 
-    # Go into critical section to check container status todo is the lock necessary?
-    with container_manager.lock:
-        is_running = utils.checker.check_new_containers(city, container_manager.all_containers)
+    is_running = utils.checker.check_new_containers(city, container_manager.all_containers)
 
     if not is_running:
         container_launcher.launch_container(str.lower(city.country[1:]), city.country_number)
-        with container_manager.lock:
-            container_manager.all_containers[f"container_{str.lower(city.country[1:])}"] = container.Container(
-                f"container_{str.lower(city.country[1:])}")
+        container_manager.all_containers[f"container_{str.lower(city.country[1:])}"] = container.Container(
+            f"container_{str.lower(city.country[1:])}")
     else:
-        with container_manager.lock:
-            container_manager.all_containers[f"container_{str.lower(city.country[1:])}"].reset()
+        container_manager.all_containers[f"container_{str.lower(city.country[1:])}"].reset()
 
     print('[INFO] Sending data to the destination container')
     utils.checker.send_packet_to_container(city)
+
+
+@app.route('/send-data', methods=['POST'])
+def receive_data():
+    received_data = request.get_json()
+
+    print('[INFO] Launching thread to handle the request')
+    thread = threading.Thread(target=thread_receive_data(received_data))
+    thread.start()
+    thread.join()
 
     return 'Data correctly received', 200
 

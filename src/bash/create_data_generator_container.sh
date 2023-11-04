@@ -2,6 +2,7 @@
 
 if [ "$(docker ps -aq -f name="data_generator_container")" ]; then
   echo "The data_generator container already exist, so its creation is skipped"
+  docker start $(docker inspect -f '{{.Id}}' "data_generator_container")
 else
   docker volume create "volume_data_generator"
   docker build -t "data_generator_image" -f src/docker_files/Dockerfile_data_generator .

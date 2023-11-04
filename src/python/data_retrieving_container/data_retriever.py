@@ -214,7 +214,9 @@ def retrieve():
                 print('[INFO] Cannot connect to the destination container, redirecting the request to main container')
                 endpoint = config.get('main_container_endpoint_send')
                 response = requests.post(url=endpoint, json=send_data)
-                if response.status_code != 200:
+                if response.status_code == 200:
+                    print('[INFO] Request successfully sent to main container')
+                else:
                     print(f'Something went wrong - response status code {response.status_code}')
 
             print('\n')

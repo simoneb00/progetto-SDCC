@@ -1,33 +1,9 @@
-"""
-The following file contains the AWS Lambda functions
-"""
-
 import json
 import boto3
 import botocore
 import csv
 from datetime import datetime
 
-
-# prev_data format: [header, b'Rome,it,28,28,23,32,50,50,2023-09-28\r\n', ...]
-def format(prev_data):
-    print('************ FORMATTING DATA **************')
-
-    ret_list = []
-
-    print(prev_data)
-
-    for i in range(1, len(prev_data)):
-        print(prev_data[i])
-
-        # Remove the prefix "b'" and the suffix "'\r\n"
-        data = prev_data[i].decode('utf-8')[0:-2]
-        list = data.split(',')
-        ret_list.append(list)
-
-    print(ret_list)
-    print('*****************************')
-    return ret_list
 
 
 def create_dynamodb_table(dynamodb_client, data):
@@ -60,19 +36,19 @@ def create_dynamodb_table(dynamodb_client, data):
             ],
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
-                {
-                    'IndexName': 'DayIndex',
-                    'KeySchema': [
-                        {
-                            'AttributeName': 'Day',
-                            'KeyType': 'HASH'
-                        },
-                    ],
-                    'Projection': {
-                        'ProjectionType': 'ALL'
-                    }
+            {
+                'IndexName': 'DayIndex',
+                'KeySchema': [
+                    {
+                        'AttributeName': 'Day',
+                        'KeyType': 'HASH'
+                    },
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
                 }
-            ]
+            }
+        ]
         )
         print(response)
     except dynamodb_client.exceptions.ResourceInUseException as e:
@@ -82,9 +58,11 @@ def create_dynamodb_table(dynamodb_client, data):
 
 
 def put_data(dynamodb, data):
-    string_date = data.get('date_time')  # iso formatted date
+
+    string_date = data.get('date_time')     # iso formatted date
     date_string = string_date[:10]
     time_string = string_date[11:]
+
 
     dynamodb.put_item(
         Item={
@@ -134,7 +112,6 @@ def dynamodb_persistence(data):
     waiter.wait(TableName='table-sdcc-' + data.get('country'))
 
     put_data(dynamodb_client, data)
-
 
 def lambda_handler(event, context):
     data = json.loads(event['body'])
