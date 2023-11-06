@@ -7,5 +7,6 @@
     "api_gateway_upload_data": "https://e1b792l8l1.execute-api.us-east-1.amazonaws.com/default/cloudWeatherDataCollector",
     "api_gateway_query": "https://28jsuyqe2m.execute-api.us-east-1.amazonaws.com/default/queryWeatherData",
     "rounds": 3,
-    "cities_per_round": 10
+    "cities_per_round": 10,
+    "timeout": 60
 }

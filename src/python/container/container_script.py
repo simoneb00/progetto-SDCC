@@ -10,8 +10,7 @@ It must perform the following operations:
 """
 import csv
 import datetime
-import sys
-import time
+import threading
 
 import docker
 import requests
@@ -69,71 +68,89 @@ def shutdown():
     return "shutting down", 200
 
 
+
+
+def process_request(return_values):
+    if 'file' not in request.files:
+            return_values[0] = "No files in the request"
+            return_values[1] = 400
+    else:        
+        f = request.files['file']
+
+        if f:
+            file_contents = f.read()
+            deserialized_data = json.loads(file_contents)
+            p = pack_city_data(deserialized_data)
+
+            source = request.headers.get('X-Source-Container')
+            print(f'[INFO] Data received from {source}')
+
+            print(f"[INFO] Received data for city {p.name}")
+            print('[INFO] Sending data to cloud')
+            code, message = cloud_interface.send_packet(p, config)
+            print(f'[INFO] Results: {code}: {message}')
+
+            now = datetime.datetime.now()
+            print(f'[INFO] Results got at time {now}')
+
+            # save time for statistics
+            cold_start = source != 'data_generator_container'
+
+            filename = '/volume/statistics.csv'
+            file_exists = os.path.isfile(filename)
+
+            with open(filename, 'a') as f:
+                csv_writer = csv.writer(f)
+                if not file_exists:
+                    csv_writer.writerow(['city', 'time', 'cold_start'])
+                csv_writer.writerow([p.name, now, cold_start])
+
+            date = '2023-10-26'
+
+            print('[INFO] Sending queries to cloud')
+            query_code, query_result = cloud_interface.query(p.name, p.country, date, 0, 0, config)
+            if query_code != 200:
+                print(f'[INFO] Results: {query_code} - {query_result}')
+            else:
+                stats = json.loads(query_result)
+                # print avg statistics
+                print(stats)
+
+            query_code, query_result = cloud_interface.query(p.name, p.country, date, 1, 0, config)
+            if query_code != 200:
+                print(f'[INFO] Results: {query_code} - {query_result}')
+            else:
+                stats = json.loads(query_result)
+                # print avg statistics
+                print(stats)
+
+            query_code, query_result = cloud_interface.query(None, p.country, date, 0, 1, config)
+            if query_code != 200:
+                print(f'[INFO] Results: {query_code} - {query_result}')
+            else:
+                stats = json.loads(query_result)
+                # print avg statistics
+                print(stats)
+        
+        return_values[0] = "Message correctly posted to AWS"
+        return_values[1] = 200
+
+
 @app.route(f'/{container_country}', methods=['POST'])
 def upload():
-    if 'file' not in request.files:
-        return "No files in the request", 400
+    return_values = ["",500]
 
-    f = request.files['file']
+    # Create a thread to execute the handler for the POST request
+    thread = threading.Thread(target=process_request(return_values))
+    thread.start()
+    thread.join()
+    
+    message = return_values[0]
+    status_code = return_values[1]
 
-    if f:
-        file_contents = f.read()
-        deserialized_data = json.loads(file_contents)
-        p = pack_city_data(deserialized_data)
+    return message, status_code
 
-        source = request.headers.get('X-Source-Container')
-        print(f'[INFO] Data received from {source}')
-
-        print(f"[INFO] Received data for city {p.name}")
-        print('[INFO] Sending data to cloud')
-        code, message = cloud_interface.send_packet(p, config)
-        print(f'[INFO] Results: {code}: {message}')
-
-        now = datetime.datetime.now()
-        print(f'[INFO] Results got at time {now}')
-
-        # save time for statistics
-        cold_start = source != 'data_generator_container'
-
-        filename = '/volume/statistics.csv'
-        file_exists = os.path.isfile(filename)
-
-        with open(filename, 'a') as f:
-            csv_writer = csv.writer(f)
-            if not file_exists:
-                csv_writer.writerow(['city', 'time', 'cold_start'])
-            csv_writer.writerow([p.name, now, cold_start])
-
-        date = '2023-10-26'
-
-        print('[INFO] Sending queries to cloud')
-        query_code, query_result = cloud_interface.query(p.name, p.country, date, 0, 0, config)
-        if query_code != 200:
-            print(f'[INFO] Results: {query_code} - {query_result}')
-        else:
-            stats = json.loads(query_result)
-            # print avg statistics
-            print(stats)
-
-        query_code, query_result = cloud_interface.query(p.name, p.country, date, 1, 0, config)
-        if query_code != 200:
-            print(f'[INFO] Results: {query_code} - {query_result}')
-        else:
-            stats = json.loads(query_result)
-            # print avg statistics
-            print(stats)
-
-        query_code, query_result = cloud_interface.query(None, p.country, date, 0, 1, config)
-        if query_code != 200:
-            print(f'[INFO] Results: {query_code} - {query_result}')
-        else:
-            stats = json.loads(query_result)
-            # print avg statistics
-            print(stats)
-
-        print('\n\n')
-
-        return message, code
+    
 
 
 if __name__ == "__main__":

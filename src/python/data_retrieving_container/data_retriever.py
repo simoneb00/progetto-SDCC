@@ -5,7 +5,6 @@ the cities considered are specified in the file cities.csv.
 import csv
 import datetime
 import os
-import socket
 import time
 
 import requests
@@ -167,6 +166,8 @@ def retrieve():
 
     api_key = config.get('api_key')
     round_index = 1
+    
+    print("[INFO] Timeout in second is: " + str(config.get("timeout")))
 
     while True:
 
@@ -221,7 +222,7 @@ def retrieve():
 
             print('\n')
 
-        # end of round, send message and sleep for 60 seconds
+        # end of round, send message and sleep for x seconds (See config file for x value in seconds)
         # we need to send to main container both the round_index and the list of active countries
         endpoint = config.get('main_container_endpoint_end_round')
         round_index = round_index + 1
@@ -234,7 +235,7 @@ def retrieve():
         requests.post(url=endpoint, json=data)
 
         print('[INFO] End of round, sent message\n')
-        time.sleep(60)
+        time.sleep(config.get("timeout"))
 
 
 
