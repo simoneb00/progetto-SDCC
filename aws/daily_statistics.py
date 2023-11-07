@@ -86,12 +86,12 @@ def compute_mean_statistics(all_statistics):
         }
 
     avg_statistics['National Average'] = {
-        'avg_temp': sum(all_temp)/len(all_temp),
-        'avg_feels_like': sum(all_feels_like)/len(all_feels_like),
-        'avg_temp_min': sum(all_temp_min)/len(all_temp_min),
-        'avg_temp_max': sum(all_temp_max)/len(all_temp_max),
-        'avg_pressure': sum(all_pressure)/len(all_pressure),
-        'avg_humidity': sum(all_humidity)/len(all_humidity)
+        'avg_temp': sum(all_temp) / len(all_temp),
+        'avg_feels_like': sum(all_feels_like) / len(all_feels_like),
+        'avg_temp_min': sum(all_temp_min) / len(all_temp_min),
+        'avg_temp_max': sum(all_temp_max) / len(all_temp_max),
+        'avg_pressure': sum(all_pressure) / len(all_pressure),
+        'avg_humidity': sum(all_humidity) / len(all_humidity)
     }
 
     return avg_statistics
@@ -145,11 +145,10 @@ def create_and_save_file(avg_statistics, country, date):
     s3_client.upload_file('/tmp/' + filename, bucket_name, filename)
 
 
-
 def lambda_handler(event, context):
     print(event)
 
-    if event['Records'][0]['eventName'] == 'REMOVE':
+    if event['Records'][0]['eventName'] != 'INSERT':
         print('Unexpected event')
         return
 

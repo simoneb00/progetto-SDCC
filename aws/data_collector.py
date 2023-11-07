@@ -5,7 +5,6 @@ import csv
 from datetime import datetime
 
 
-
 def create_dynamodb_table(dynamodb_client, data):
     try:
         response = dynamodb_client.create_table(
@@ -36,19 +35,19 @@ def create_dynamodb_table(dynamodb_client, data):
             ],
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
-            {
-                'IndexName': 'DayIndex',
-                'KeySchema': [
-                    {
-                        'AttributeName': 'Day',
-                        'KeyType': 'HASH'
-                    },
-                ],
-                'Projection': {
-                    'ProjectionType': 'ALL'
+                {
+                    'IndexName': 'DayIndex',
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'Day',
+                            'KeyType': 'HASH'
+                        },
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'ALL'
+                    }
                 }
-            }
-        ]
+            ]
         )
         print(response)
     except dynamodb_client.exceptions.ResourceInUseException as e:
@@ -58,11 +57,9 @@ def create_dynamodb_table(dynamodb_client, data):
 
 
 def put_data(dynamodb, data):
-
-    string_date = data.get('date_time')     # iso formatted date
+    string_date = data.get('date_time')  # iso formatted date
     date_string = string_date[:10]
     time_string = string_date[11:]
-
 
     dynamodb.put_item(
         Item={
@@ -112,6 +109,7 @@ def dynamodb_persistence(data):
     waiter.wait(TableName='table-sdcc-' + data.get('country'))
 
     put_data(dynamodb_client, data)
+
 
 def lambda_handler(event, context):
     data = json.loads(event['body'])
